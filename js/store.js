@@ -13,7 +13,10 @@ const defaults = () => ({
   words: {},           // daily vocabulary quiz results, same shape
   activity: {},        // { "2026-10-18": { fr: 12, es: 4 } } — points per day
   cards: [],           // flashcards
-  aiCache: {},         // word lookups + generated daily content
+  deletedCards: {},    // { cardId: timestamp } so deletions sync across devices
+  aiCache: {},         // word lookups + generated daily content (this device only)
+  updatedAt: 0,        // last local change (ms), used when syncing settings
+  ownerUid: null,      // signed-in account this device's data belongs to
 });
 
 let state = load();
@@ -30,14 +33,77 @@ function load() {
   }
 }
 
-export function save() {
+const listeners = new Set();
+/** Subscribe to local changes (used by cloud sync). */
+export const onChange = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
+
+/** Persist. `remote: true` means the change came from the cloud, so don't echo it back. */
+export function save({ remote = false } = {}) {
+  if (!remote) state.updatedAt = Date.now();
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { console.warn('Could not save progress', e); }
+  if (!remote) listeners.forEach((fn) => fn());
 }
 
 export const get = () => state;
 export function set(patch) { Object.assign(state, patch); save(); }
 export function replaceAll(next) { state = { ...defaults(), ...next }; save(); }
 export function resetAll() { state = defaults(); save(); }
+
+// ---------- cloud sync helpers ----------
+const LOCAL_ONLY_SETTINGS = ['apiKey', 'voices'];
+
+/** The part of the state that goes to the cloud: no API key, voices or AI cache. */
+export function syncable(s = state) {
+  const { aiCache, ownerUid, ...rest } = s;
+  const settings = { ...s.settings };
+  for (const k of LOCAL_ONLY_SETTINGS) delete settings[k];
+  return { ...rest, settings };
+}
+
+const newer = (a, b) => ((a?.updatedAt || 0) >= (b?.updatedAt || 0) ? a : b);
+
+/** Merge two progress snapshots so nothing studied on either device is lost. Order-independent. */
+export function merge(a, b) {
+  const d = defaults();
+  a = { ...d, ...a }; b = { ...d, ...b };
+  const prefs = newer(a, b);
+  const union = (k) => ({ ...a[k], ...b[k], ...prefs[k] });
+  const activity = {};
+  for (const day of new Set([...Object.keys(a.activity), ...Object.keys(b.activity)])) {
+    const x = a.activity[day] || {}, y = b.activity[day] || {};
+    activity[day] = {};
+    for (const l of new Set([...Object.keys(x), ...Object.keys(y)])) activity[day][l] = Math.max(x[l] || 0, y[l] || 0);
+  }
+  const deletedCards = { ...a.deletedCards, ...b.deletedCards };
+  const byKey = new Map();
+  for (const c of [...a.cards, ...b.cards]) {
+    if (deletedCards[c.id] && deletedCards[c.id] >= (c.updatedAt || 0)) continue;
+    const k = `${c.lang}|${c.front.trim().toLowerCase()}`;
+    const prev = byKey.get(k);
+    if (!prev || (c.updatedAt || 0) > (prev.updatedAt || 0) || ((c.updatedAt || 0) === (prev.updatedAt || 0) && c.reps > prev.reps)) byKey.set(k, c);
+  }
+  return {
+    ...d,
+    lang: prefs.lang, onboarded: a.onboarded || b.onboarded,
+    levels: { ...d.levels, ...prefs.levels },
+    settings: { ...d.settings, ...prefs.settings },
+    lessonsDone: union('lessonsDone'), exerciseScores: union('exerciseScores'),
+    readings: union('readings'), listening: union('listening'), words: union('words'),
+    activity, cards: [...byKey.values()], deletedCards,
+    updatedAt: Math.max(a.updatedAt || 0, b.updatedAt || 0),
+  };
+}
+
+/** Replace local progress with a cloud snapshot, keeping this device's key, voices and cache. */
+export function applyRemote(remote, uid) {
+  const keep = { apiKey: state.settings.apiKey, voices: state.settings.voices };
+  state = { ...defaults(), ...remote, settings: { ...defaults().settings, ...remote.settings, ...keep }, aiCache: state.aiCache, ownerUid: uid };
+  save({ remote: true });
+}
+export function setOwner(uid) { state.ownerUid = uid; save({ remote: true }); }
+
+/** Does this device hold any real progress? */
+export const hasProgress = (s = state) => s.cards.length > 0 || Object.keys(s.lessonsDone).length > 0 || Object.keys(s.activity).length > 0;
 
 // ---------- dates ----------
 export function today() {
@@ -98,14 +164,14 @@ export function addCard(lang, front, back, note = '', source = 'manual') {
   const card = {
     id: Math.random().toString(36).slice(2, 10),
     lang, front: front.trim(), back: (back || '').trim(), note, source,
-    added: today(), due: today(), interval: 0, ease: 2.5, reps: 0, lapses: 0, last: null,
+    added: today(), due: today(), interval: 0, ease: 2.5, reps: 0, lapses: 0, last: null, updatedAt: Date.now(),
   };
   state.cards.push(card);
   save();
   return card;
 }
-export function deleteCard(id) { state.cards = state.cards.filter((c) => c.id !== id); save(); }
-export function updateCard(id, patch) { Object.assign(state.cards.find((c) => c.id === id) || {}, patch); save(); }
+export function deleteCard(id) { state.cards = state.cards.filter((c) => c.id !== id); state.deletedCards[id] = Date.now(); save(); }
+export function updateCard(id, patch) { Object.assign(state.cards.find((c) => c.id === id) || {}, patch, { updatedAt: Date.now() }); save(); }
 export const hasCard = (lang, front) => state.cards.some((c) => c.lang === lang && norm(c.front) === norm(front));
 
 export function dueCards(lang) {
@@ -131,6 +197,7 @@ export function reviewCard(id, grade) {
   c.interval = iv;
   c.due = addDays(today(), iv);
   c.last = today();
+  c.updatedAt = Date.now();
   save();
   logActivity(c.lang, 1);
 }

@@ -46,7 +46,33 @@ AI features call Claude directly from your browser using **your own** API key. C
 - Set a monthly spend limit on the key in the Anthropic console.
 - You can choose the model in Settings: Claude Opus 5.5 (default, best quality), Sonnet 5.5 (faster, cheaper) or Haiku 5.5 (cheapest).
 
-## Run it locally
+## Accounts & sync (optional)
+
+Sign in with Google to sync progress between devices; each person gets their own account. This uses Firebase's free tier. Setup:
+
+1. Create a project at [console.firebase.google.com](https://console.firebase.google.com). Google Analytics isn't needed.
+2. **Add a web app** (the `</>` icon), then copy the `firebaseConfig` object into `js/firebase-config.js`.
+3. **Authentication → Sign-in method → Google → Enable.**
+4. **Authentication → Settings → Authorized domains → Add domain:** `<your-username>.github.io`
+5. **Firestore Database → Create database** (production mode, any nearby location). Then **Rules**, and publish:
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{uid} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+     }
+   }
+   ```
+   To allow only specific people, add `&& request.auth.token.email in ['you@gmail.com', 'mom@gmail.com']` to the condition.
+
+How it works:
+- Each account's progress is stored in one Firestore document, `users/{uid}`, and merges automatically.
+- Your API key, device voices and AI cache stay on each device and are never uploaded.
+- Signing out clears the device, so a family member can sign in on the same computer.
+
+
 
 Any static file server works:
 

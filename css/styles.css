@@ -83,6 +83,12 @@ code { background: var(--surface-2); padding: .1em .35em; border-radius: 5px; fo
 .icon-btn { background: none; border: 0; font-size: 1.2rem; cursor: pointer; color: var(--text); padding: 6px 8px; border-radius: 8px; }
 .icon-btn:hover { background: var(--surface-2); }
 #menuBtn { display: none; }
+.account-btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text); border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 4px 10px 4px 4px; font: 500 .85rem var(--font); white-space: nowrap; }
+.account-btn.signed-out { padding: 6px 12px; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: .8rem; overflow: hidden; position: relative; flex: none; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.sync-dot.synced { background: var(--good); } .sync-dot.syncing { background: var(--warn); } .sync-dot.error { background: var(--bad); }
 
 /* Layout */
 .layout { display: grid; grid-template-columns: 230px 1fr; max-width: 1180px; margin: 0 auto; }
@@ -254,6 +260,9 @@ table.conj th { background: var(--surface-2); font-weight: 600; }
   main { padding: 20px 16px 120px; }
   .topbar { padding: 10px 16px; gap: 8px; }
   .lang-switch button .ln { display: none; }
+  .account-btn .acct-name { display: none; }
+  .account-btn { padding: 3px; }
+  .account-btn.signed-out { padding: 5px 9px; }
   .brand { font-size: 1rem; }
   .tutor-fab span { display: none; }
   .tutor-panel { right: 8px; left: 8px; bottom: 8px; width: auto; height: calc(100vh - 80px); }

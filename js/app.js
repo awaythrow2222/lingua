@@ -5,6 +5,7 @@ import * as ai from './ai.js';
 import { COURSES, LANGS, LEVELS, LEVEL_LABEL, content, has } from './courses.js';
 import { initWordPopup, closeWord } from './wordpopup.js';
 import { initTutor, setTutorPage } from './tutor.js';
+import * as sync from './sync.js';
 
 const S = () => store.get();
 const L = () => S().lang;
@@ -755,11 +756,59 @@ function viewProgress() {
 
 // ----- settings
 
+function accountCard() {
+  if (!sync.configured()) {
+    return `<div class="card" id="account"><h2>Account & sync</h2>
+      <p class="muted small">Cloud sync isn't set up yet. Once a Firebase project is connected (see the README), you'll be able to sign in with Google here so your progress follows you between phone and computer, and each family member gets their own account.</p></div>`;
+  }
+  const u = sync.currentUser();
+  const st = sync.syncStatus();
+  const when = st.lastSynced ? st.lastSynced.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+  return `<div class="card" id="account"><h2>Account & sync</h2>
+    ${u ? `<div class="row"><span class="avatar" style="width:40px;height:40px">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : esc((u.displayName || u.email || '?')[0].toUpperCase())}</span>
+        <div style="flex:1"><b>${esc(u.displayName || '')}</b><div class="muted small">${esc(u.email || '')}</div></div>
+        <button class="btn" id="signOutBtn">Sign out</button></div>
+      <p class="small" style="margin:12px 0 0"><span class="sync-dot ${st.status}" style="display:inline-block;vertical-align:middle"></span>
+        ${st.status === 'synced' ? `Synced${when ? ` at ${when}` : ''}. Progress updates automatically on all your devices.` : st.status === 'syncing' ? 'Syncing…' : st.status === 'error' ? `Sync problem: ${esc(st.lastError)}` : ''}</p>
+      <p class="muted small" style="margin-top:8px">Signing out clears progress from this device (it stays safe in your account) so someone else can sign in here. Your API key stays on this device.</p>`
+    : `<p class="muted small">Sign in with Google to keep your progress in sync between phone and computer. Each person signs in with their own Google account and gets their own progress.</p>
+      <button class="btn primary" id="signInBtn">Sign in with Google</button>
+      ${st.status === 'error' ? `<p class="small" style="color:var(--bad);margin-top:8px">${esc(st.lastError)}</p>` : ''}`}
+  </div>`;
+}
+
+function renderAccountBtn() {
+  const b = $('#accountBtn');
+  if (!sync.configured()) { b.hidden = true; return; }
+  b.hidden = false;
+  const u = sync.currentUser();
+  const st = sync.syncStatus().status;
+  b.classList.toggle('signed-out', !u);
+  b.title = u ? `Signed in as ${u.email} — ${st}` : 'Sign in to sync your progress';
+  b.innerHTML = u
+    ? `<span class="avatar">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : esc((u.displayName || u.email || '?')[0].toUpperCase())}</span><span class="acct-name">${esc((u.displayName || '').split(' ')[0])}</span><span class="sync-dot ${st}"></span>`
+    : 'Sign in';
+}
+
+function bindAccount() {
+  $('#signInBtn')?.addEventListener('click', async (e) => {
+    e.target.disabled = true; e.target.textContent = 'Opening Google…';
+    try { await sync.signIn(); } catch (err) { toast(err.message || 'Sign-in failed'); }
+    e.target.disabled = false; e.target.textContent = 'Sign in with Google';
+  });
+  $('#signOutBtn')?.addEventListener('click', async () => {
+    if (!confirm('Sign out? Your progress stays saved in your account, and this device will be cleared.')) return;
+    await sync.signOut();
+    toast('Signed out');
+  });
+}
+
 function viewSettings() {
   setTutorPage('Settings');
   const s = S().settings;
   view().innerHTML = `
     <h1>Settings</h1>
+    ${accountCard()}
     <div class="card">
       <h2>AI tutor (Claude)</h2>
       <p class="muted small">The tutor, rich word lookups (conjugations, memory tricks for any word) and fresh daily passages use Claude. Bring your own key from <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Everything else works without one.</p>
@@ -800,6 +849,7 @@ function viewSettings() {
         <span class="spacer"></span><button class="btn" id="resetBtn" style="color:var(--bad)">Reset everything</button></div>
     </div>`;
 
+  bindAccount();
   $('#saveKey').onclick = () => { s.apiKey = $('#apiKey').value.trim(); s.model = $('#model').value; store.save(); $('#keyStatus').textContent = '✓ Saved'; };
   $('#testKey').onclick = async () => {
     s.apiKey = $('#apiKey').value.trim(); s.model = $('#model').value; store.save();
@@ -898,5 +948,18 @@ renderShell();
 initWordPopup();
 initTutor();
 route();
+renderAccountBtn();
+sync.onSyncChange(({ remoteChanged }) => {
+  renderAccountBtn();
+  const page = location.hash.replace(/^#\/?/, '').split('/')[0] || 'home';
+  if (remoteChanged) {
+    renderShell();
+    // refresh pages that only display progress; don't interrupt an exercise in progress
+    if (['home', 'progress', 'grammar'].includes(page) && !location.hash.match(/grammar\/./)) route();
+  }
+  const card = $('#account');
+  if (page === 'settings' && card) { card.outerHTML = accountCard(); bindAccount(); }
+});
+sync.initSync();
 // voices load asynchronously in some browsers; refresh settings if open
 if (speech.supported()) speechSynthesis.addEventListener?.('voiceschanged', () => { if (location.hash === '#/settings') viewSettings(); });
