@@ -772,7 +772,8 @@ function accountCard() {
         ${st.status === 'synced' ? `Synced${when ? ` at ${when}` : ''}. Progress updates automatically on all your devices.` : st.status === 'syncing' ? 'Syncing…' : st.status === 'error' ? `Sync problem: ${esc(st.lastError)}` : ''}</p>
       <p class="muted small" style="margin-top:8px">Signing out clears progress from this device (it stays safe in your account) so someone else can sign in here. Your API key stays on this device.</p>`
     : `<p class="muted small">Sign in with Google to keep your progress in sync between phone and computer. Each person signs in with their own Google account and gets their own progress.</p>
-      <button class="btn primary" id="signInBtn">Sign in with Google</button>
+      <div class="row"><button class="btn primary" id="signInBtn">Sign in with Google</button>
+        <button class="btn ghost small" id="signInTabBtn" title="Use this if the Google popup shows an error or doesn't open">Popup not working? Sign in in this tab</button></div>
       ${st.status === 'error' ? `<p class="small" style="color:var(--bad);margin-top:8px">${esc(st.lastError)}</p>` : ''}`}
   </div>`;
 }
@@ -795,6 +796,9 @@ function bindAccount() {
     e.target.disabled = true; e.target.textContent = 'Opening Google…';
     try { await sync.signIn(); } catch (err) { toast(err.message || 'Sign-in failed'); }
     e.target.disabled = false; e.target.textContent = 'Sign in with Google';
+  });
+  $('#signInTabBtn')?.addEventListener('click', async () => {
+    try { await sync.signIn({ sameTab: true }); } catch (err) { toast(err.message || 'Sign-in failed'); }
   });
   $('#signOutBtn')?.addEventListener('click', async () => {
     if (!confirm('Sign out? Your progress stays saved in your account, and this device will be cleared.')) return;

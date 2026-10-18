@@ -100,6 +100,9 @@ export async function initSync() {
     return;
   }
   store.onChange(schedulePush);
+  // finish a same-tab sign-in and surface any error from it
+  fb.authMod.getRedirectResult(fb.auth).catch((e) => setStatus('error', e.code === 'auth/unauthorized-domain'
+    ? 'This website address is not on the Firebase "Authorized domains" list.' : (e.message || 'Sign-in failed.')));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') push(); });
   fb.authMod.onAuthStateChanged(fb.auth, async (u) => {
     user = u;
@@ -109,10 +112,12 @@ export async function initSync() {
   });
 }
 
-export async function signIn() {
+/** Sign in with a Google popup, or with `sameTab` navigate this tab to Google and back. */
+export async function signIn({ sameTab = false } = {}) {
   await load();
   const provider = new fb.authMod.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
+  if (sameTab) { await fb.authMod.signInWithRedirect(fb.auth, provider); return; }
   try {
     await fb.authMod.signInWithPopup(fb.auth, provider);
   } catch (e) {
