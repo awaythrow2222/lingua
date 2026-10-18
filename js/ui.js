@@ -24,8 +24,36 @@ export function linkify(text, lang) {
 /** Target-language block, e.g. a sentence. */
 export const tl = (text, lang, cls = '') => `<span class="target ${cls}" lang="${lang}">${linkify(text, lang)}</span>`;
 
-/** Lesson HTML where {{…}} marks target-language snippets. Content is authored, so HTML is trusted. */
-export const rich = (html, lang) => html.replace(/\{\{(.+?)\}\}/g, (_, t) => `<b>${tl(t, lang)}</b>`);
+/**
+ * Lesson HTML (authored, so trusted). Markup:
+ *   {{word}}            target-language text, clickable
+ *   {{word|meaning}}    target-language text followed by its English meaning
+ *   [[term]] / [[term|shown text]]   grammar term with a click-to-explain definition
+ */
+export const rich = (html, lang) => html
+  .replace(/\{\{(.+?)\}\}/g, (_, t) => {
+    const [word, gloss] = t.split('|');
+    return `<b>${tl(word, lang)}</b>${gloss ? ` <span class="gloss">(${esc(gloss)})</span>` : ''}`;
+  })
+  .replace(/\[\[(.+?)\]\]/g, (_, t) => {
+    const [key, shown] = t.split('|');
+    return `<span class="term" tabindex="0" role="button" data-term="${esc(key.toLowerCase())}">${esc(shown || key)}</span>`;
+  });
+
+/** Grammar terms referenced in a lesson, in order of first use. */
+export const termsIn = (html) => [...new Set([...String(html).matchAll(/\[\[(.+?)(?:\|.+?)?\]\]/g)].map((m) => m[1].toLowerCase()))];
+
+/**
+ * Word-by-word breakdown under an example sentence.
+ * "Maganda=beautiful|ang=(topic)|bahay=house" → stacked target word over its meaning.
+ */
+export function breakdown(spec, lang) {
+  if (!spec) return '';
+  return `<div class="interlinear">${spec.split('|').map((pair) => {
+    const [w, m] = pair.split('=');
+    return `<span class="il"><span class="il-w">${tl(w, lang)}</span><span class="il-m">${esc(m || '')}</span></span>`;
+  }).join('')}</div>`;
+}
 
 /** Minimal, safe markdown for tutor messages. */
 export function md(src) {

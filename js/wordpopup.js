@@ -5,6 +5,7 @@ import * as speech from './speech.js';
 import * as ai from './ai.js';
 import { COURSES } from './courses.js';
 import { openTutor } from './tutor.js';
+import { getTerm } from './glossary.js';
 
 const popup = () => $('#wordPopup');
 let current = null;   // { word, lang, sentence, anchor }
@@ -172,6 +173,22 @@ export async function openWord(word, lang, anchor = null, sentence = '') {
   render(state);
 }
 
+/** Show a grammar term's plain-English definition in the popup. */
+export function openTerm(key, anchor) {
+  const t = getTerm(key);
+  if (!t) return;
+  document.querySelectorAll('.w.active').forEach((e) => e.classList.remove('active'));
+  current = { word: t.label, lang: store.get().lang, anchor, isTerm: true };
+  reqId++;
+  popup().innerHTML = `
+    <div class="wp-head"><div style="flex:1"><div class="wp-word" id="wpWord" style="font-size:1.3rem">${esc(t.label)}</div><span class="pill gray">grammar term</span></div>
+      <button class="icon-btn" id="wpClose" aria-label="Close">✕</button></div>
+    <div class="wp-sec"><div>${esc(t.def)}</div></div>
+    ${t.ex ? `<div class="wp-sec"><h4>Example</h4><div class="mnemonic">${esc(t.ex)}</div></div>` : ''}
+    <div class="row" style="margin-top:14px"><button class="btn sm" id="wpAskTerm">Ask tutor to explain more</button></div>`;
+  position();
+}
+
 export function closeWord() {
   popup().hidden = true;
   current = null;
@@ -188,6 +205,8 @@ export function initWordPopup() {
   document.addEventListener('click', (e) => {
     const say = e.target.closest('[data-say]');
     if (say) { e.stopPropagation(); speech.speak(say.dataset.say, say.dataset.lang || current?.lang || store.get().lang); return; }
+    const term = e.target.closest('.term');
+    if (term) { e.preventDefault(); openTerm(term.dataset.term, term); return; }
     const w = e.target.closest('.w');
     if (w) { e.preventDefault(); openWord(w.textContent, w.dataset.lang, w, sentenceAround(w)); return; }
     if (e.target.closest('#wpClose')) { closeWord(); return; }
@@ -200,6 +219,12 @@ export function initWordPopup() {
       const btn = $('#wpAdd'); btn.disabled = true; btn.textContent = '✓ In flashcards';
       return;
     }
+    if (e.target.closest('#wpAskTerm') && current) {
+      const label = current.word;
+      closeWord();
+      openTutor(`Explain the grammar term "${label}" simply, as if I've never studied grammar, with examples from the language I'm learning.`);
+      return;
+    }
     if (e.target.closest('#wpAsk') && current) {
       const { word, sentence } = current;
       closeWord();
@@ -210,7 +235,7 @@ export function initWordPopup() {
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !popup().hidden) closeWord();
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList?.contains('w')) { e.preventDefault(); e.target.click(); }
+    if ((e.key === 'Enter' || e.key === ' ') && (e.target.classList?.contains('w') || e.target.classList?.contains('term'))) { e.preventDefault(); e.target.click(); }
   });
   // Double-click any word anywhere (tutor replies, explanations) to look it up in the current language.
   document.addEventListener('dblclick', (e) => {

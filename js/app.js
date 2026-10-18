@@ -1,4 +1,5 @@
-import { $, $$, esc, tl, rich, toast, checkAnswer, shuffle } from './ui.js';
+import { $, $$, esc, tl, rich, toast, checkAnswer, shuffle, termsIn, breakdown } from './ui.js';
+import { getTerm } from './glossary.js';
 import * as store from './store.js';
 import * as speech from './speech.js';
 import * as ai from './ai.js';
@@ -188,6 +189,16 @@ function viewGrammar() {
     }).join('')}`;
 }
 
+/** "Grammar words in this lesson": definitions for every [[term]] the lesson uses. */
+function termsBox(l) {
+  const terms = termsIn(l.body + ' ' + (l.intro || '')).map(getTerm).filter(Boolean);
+  if (!terms.length) return '';
+  return `<details class="card terms-box" ${terms.length <= 6 ? 'open' : ''}>
+    <summary><b>Grammar words in this lesson</b> <span class="muted small">(${terms.length}; you can also click any underlined term)</span></summary>
+    <dl style="margin-top:12px">${terms.map((t) => `<dt>${esc(t.label)}</dt><dd>${esc(t.def)}${t.ex ? ` <i>e.g. ${esc(t.ex)}</i>` : ''}</dd>`).join('')}</dl>
+  </details>`;
+}
+
 function findLesson(id) {
   for (const lv of LEVELS) {
     const l = C().levels[lv]?.grammar?.find((x) => x.id === id);
@@ -265,6 +276,7 @@ function viewLesson(id) {
     <h1>${esc(l.title)}</h1>
     <p class="muted">${esc(l.summary)}</p>
 
+    ${termsBox(l)}
     <div class="card lesson-body">${rich(l.body, lang)}
       ${l.table ? `<h3>${esc(l.table.title)}</h3><div class="table-wrap"><table class="conj"><tr>${l.table.headers.map((h) => `<th>${esc(h)}</th>`).join('')}</tr>
         ${l.table.rows.map((r) => `<tr>${r.map((c, j) => `<td>${l.table.plain?.includes(j) ? esc(c) : tl(c, lang)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}
@@ -272,7 +284,8 @@ function viewLesson(id) {
 
     <div class="card">
       <div class="row"><h2 style="margin:0">Examples</h2><span class="spacer"></span><button class="btn sm" id="playAll">▶ Play all</button></div>
-      <ul class="examples">${l.examples.map(([t, en]) => `<li data-sentence="${esc(t)}">${tl(t, lang)} ${speakBtn(t)}<span class="en">${esc(en)}</span></li>`).join('')}</ul>
+      ${l.examples.some((e) => e[2]) ? '<p class="muted small" style="margin:4px 0 8px">Each example shows the meaning of every word underneath it.</p>' : ''}
+      <ul class="examples">${l.examples.map(([t, en, bd]) => `<li data-sentence="${esc(t)}">${tl(t, lang)} ${speakBtn(t)}${breakdown(bd, lang)}<span class="en">${esc(en)}</span></li>`).join('')}</ul>
     </div>
 
     <div class="card">

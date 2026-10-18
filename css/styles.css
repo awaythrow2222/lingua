@@ -151,6 +151,7 @@ input:focus, select:focus, textarea:focus, .btn:focus-visible { outline: 2px sol
 .lesson-list a.done .lesson-num { background: var(--good); color: #fff; }
 .lesson-body h3 { margin-top: 1.4em; }
 .lesson-body ul { padding-left: 1.2em; }
+.lesson-body table.conj { display: block; overflow-x: auto; max-width: 100%; }
 .examples { list-style: none; padding: 0; margin: 10px 0 0; }
 .examples li { padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--surface-2); border-radius: 0 10px 10px 0; margin-bottom: 8px; }
 .examples .en { color: var(--muted); font-size: .9rem; display: block; }
@@ -164,6 +165,19 @@ table.conj th { background: var(--surface-2); font-weight: 600; }
 .w:hover, .w:focus { background: var(--accent-soft); outline: none; }
 .w.active { background: var(--accent); color: #fff; }
 .target { font-size: 1.05rem; }
+.gloss { color: var(--muted); font-size: .9em; font-weight: 400; }
+.term { border-bottom: 2px dotted var(--accent); cursor: help; font-weight: 600; }
+.term:hover, .term:focus { background: var(--accent-soft); outline: none; }
+.interlinear { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 4px; }
+.il { display: inline-flex; flex-direction: column; line-height: 1.25; }
+.il-w { font-weight: 600; }
+.il-m { font-size: .76rem; color: var(--muted); }
+.callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 14px 0; }
+.callout.warn { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, var(--surface)); }
+.terms-box dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; }
+.terms-box dt { font-weight: 600; }
+.terms-box dd { margin: 0; color: var(--muted); }
+@media (max-width: 560px) { .terms-box dl { grid-template-columns: 1fr; } .terms-box dd { margin-bottom: 6px; } }
 .passage { font-size: 1.12rem; line-height: 1.85; }
 .passage.literary { font-family: Georgia, "Times New Roman", serif; font-size: 1.15rem; }
 .passage.literary p { margin-bottom: 1em; }

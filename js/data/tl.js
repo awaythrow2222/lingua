@@ -1,4 +1,6 @@
 // Tagalog course content. {{…}} marks Tagalog text inside English explanations (made clickable).
+import G from './tl-grammar.js';
+
 const aspects = (inf, comp, incomp, cont) => [['Infinitive / command', inf], ['Completed (past)', comp], ['Incomplete (ongoing)', incomp], ['Contemplated (future)', cont]];
 
 export default {
@@ -124,101 +126,48 @@ export default {
     'hindi': { pos: 'particle', def: 'no, not', examples: [['Hindi ako pagod.', "I'm not tired."]], mnemonic: 'HINDI — "Hin-DEE? NO, not Hindi the language."', notes: 'Negates verbs/adjectives; "wala" negates existence.' },
     'wala': { pos: 'particle', def: 'none, there is not, to not have', forms: ['walang'], examples: [['Wala akong pera.', "I don't have money."], ['Walang tao.', "There's nobody."]], mnemonic: 'WALA → "WALL-ah": you hit a wall — nothing there.' },
     'may': { pos: 'existential', def: 'there is, to have', forms: ['mayroon', 'meron', 'mayroong'], examples: [['May aso ako.', 'I have a dog.'], ['Mayroon ka bang kapatid?', 'Do you have siblings?']], mnemonic: 'MAY — "you MAY have it".', notes: 'may + noun directly; mayroon + pronoun/particle first.' },
+
+    'ang': { pos: 'marker (topic)', def: 'marks the topic: what the sentence is about; like "the"', forms: ['ang mga'], examples: [['Maganda ang bahay.', 'The house is beautiful.']], mnemonic: 'ANG = "And now, the Guest of honor": it announces the star of the sentence.', notes: 'For names use si. Plural: ang mga. Always specific ("the …").' },
+    'ng': { pos: 'marker', def: '"of" (owner); also marks the object of actor-focus verbs and the actor of other verbs. Pronounced "nang".', examples: [['bahay ng guro', "the teacher's house"], ['Kumain ako ng mangga.', 'I ate a mango.']], mnemonic: 'Say it "nang". Think "of" first: bahay ng guro = house OF teacher.', notes: 'For names use ni. Not the same as nang (used before verbs/adjectives).' },
+    'sa': { pos: 'marker (place / direction)', def: 'in, at, on, to, from: marks places, directions and receivers', examples: [['Nasa bahay ako.', "I'm at home."], ['Pupunta ako sa Cebu.', "I'm going to Cebu."]], mnemonic: 'SA = "Somewhere / At": the place word.', notes: 'For names use kay. Grammar term: locative.' },
+    'si': { pos: 'marker (topic, names)', def: 'marks a person\'s name as the topic', forms: ['sina'], examples: [['Guro si Ana.', 'Ana is a teacher.']], mnemonic: 'SI = "Somebody Important": used for people.', notes: 'Plural: sina (Ana and others).' },
+    'ni': { pos: 'marker (names)', def: '"of" / "by" for a person\'s name', forms: ['nina'], examples: [['bahay ni Ben', "Ben's house"]], mnemonic: 'ni = ng for names.', notes: 'Plural: nina.' },
+    'kay': { pos: 'marker (names)', def: '"to / for / at" for a person\'s name', forms: ['kina'], examples: [['Para kay Ana ito.', 'This is for Ana.']], mnemonic: 'kay = sa for names.', notes: 'Plural: kina.' },
+    'mga': { pos: 'plural marker', def: 'makes the next noun plural; pronounced "ma-NGA"', examples: [['ang mga bata', 'the children']], mnemonic: 'MGA = "Many Grouped All together".' },
+    'ay': { pos: 'linking word', def: 'joins a topic placed first to its comment (formal word order)', examples: [['Ang bahay ay maganda.', 'The house is beautiful.']], mnemonic: 'AY sits where English "is" would, but only in the flipped order.', notes: 'Grammar term: ay-inversion.' },
+    'na': { pos: 'particle / linker', def: '1) already, now; 2) the linker between a describing word and a noun after consonants', examples: [['Kumain na ako.', "I've already eaten."], ['mabait na bata', 'kind child']], mnemonic: 'NA = "Now / Already".', notes: 'After vowels the linker is -ng instead (magandang).' },
+    'pa': { pos: 'particle', def: 'still, yet, more', examples: [['Hindi pa.', 'Not yet.'], ['Isa pa.', 'One more.']], mnemonic: 'PA = "Plus / Pending": more, or not done yet.' },
+    'ba': { pos: 'particle', def: 'turns a statement into a yes/no question', examples: [['Gutom ka ba?', 'Are you hungry?']], mnemonic: 'BA = a spoken question mark.', notes: 'Goes after the first word (and after short pronouns like ka).' },
+    'rin': { pos: 'particle', def: 'also, too (after a vowel); din after a consonant', forms: ['din'], examples: [['Ako rin.', 'Me too.']], mnemonic: 'rIN = "In too".' },
+    'lang': { pos: 'particle', def: 'only, just', forms: ['lamang'], examples: [['Sandali lang.', 'Just a moment.']], mnemonic: 'LANG = "Lone": only.' },
+    'naman': { pos: 'particle', def: 'softens a statement; "as for…", "and you?"', examples: [['Ikaw naman?', 'And you?'], ['Mabuti naman.', "I'm fine."]], mnemonic: 'NAMAN = "now, then…": a gentle turn.' },
+    'nang': { pos: 'conjunction / adverb marker', def: 'when (past); how (before adjectives); over and over (between repeated verbs)', examples: [['Kumain siya nang mabilis.', 'He ate quickly.'], ['Nang dumating ako…', 'When I arrived…']], mnemonic: 'nang (long) goes before verbs/adjectives; ng (short) before nouns.' },
+    'ito': { pos: 'demonstrative', def: 'this (near the speaker)', forms: ['nito', 'dito'], examples: [['Ano ito?', 'What is this?']], mnemonic: 'ITo = "IT, here": right by me.', notes: 'nito = of this; dito = here.' },
+    'iyan': { pos: 'demonstrative', def: 'that (near the listener)', forms: ['niyan', 'diyan', 'yan'], examples: [['Ano iyan?', 'What is that?']], mnemonic: 'iyAN = "by yoU-AN".', notes: 'diyan = there (near you).' },
+    'iyon': { pos: 'demonstrative', def: 'that (far from both speakers)', forms: ['niyon', 'noon', 'doon', 'yon'], examples: [['Malayo iyon.', "That's far."]], mnemonic: 'iyON = "Out ON the horizon".', notes: 'doon = over there.' },
+    'ikaw': { pos: 'pronoun (topic)', def: 'you (one person)', forms: ['ka'], examples: [['Ikaw ba si Ana?', 'Are you Ana?'], ['Pagod ka.', "You're tired."]], mnemonic: 'iKAW = "I call you".', notes: 'Use ka after the first word, ikaw at the start or alone.' },
+    'ka': { pos: 'pronoun (topic, short)', def: 'you (one person) — short form used after the first word', examples: [['Gutom ka ba?', 'Are you hungry?']], mnemonic: 'KA = short for iKAw.' },
+    'siya': { pos: 'pronoun (topic)', def: 'he OR she (no gender in Tagalog)', examples: [['Guro siya.', "She's / He's a teacher."]], mnemonic: 'SIYA — "see ya": that person over there.', notes: 'ng-form: niya; sa-form: kaniya.' },
+    'kami': { pos: 'pronoun (topic)', def: 'we — NOT including the listener', forms: ['namin', 'amin'], examples: [['Aalis na kami.', "We're leaving now."]], mnemonic: 'KAMI = "Kept Away from you, Me + I-group".', notes: 'Inclusive "we" is tayo.' },
+    'tayo': { pos: 'pronoun (topic)', def: 'we — INCLUDING the listener; also "let\'s"', forms: ['natin', 'atin'], examples: [['Kain tayo!', "Let's eat!"]], mnemonic: 'TAYO = "Together, All of You and me".' },
+    'kayo': { pos: 'pronoun (topic)', def: 'you (several people), or polite "you" to one person', forms: ['ninyo', 'inyo'], examples: [['Kumusta po kayo?', 'How are you? (polite)']], mnemonic: 'KAYO = "Kindly, You all".' },
+    'sila': { pos: 'pronoun (topic)', def: 'they', forms: ['nila', 'kanila'], examples: [['Nasa bahay sila.', "They're at home."]], mnemonic: 'SILA = "See them, Left Aside".' },
+    'ko': { pos: 'pronoun (ng-form)', def: 'my; by me', examples: [['bahay ko', 'my house'], ['Kinain ko.', 'I ate it.']], mnemonic: 'KO = "Kept by me, Owned".', notes: 'Topic form: ako; sa-form: akin.' },
+    'mo': { pos: 'pronoun (ng-form)', def: 'your; by you (one person)', examples: [['Ano ang pangalan mo?', "What's your name?"]], mnemonic: 'MO = "Mine? nO, yours".' },
+    'niya': { pos: 'pronoun (ng-form)', def: 'his / her; by him / her', examples: [['aso niya', 'his/her dog']], mnemonic: 'NIYA = ng-form of siYA.' },
+    'nasa': { pos: 'existential / preposition', def: 'is at, is in, is on', examples: [['Nasa mesa ang libro.', 'The book is on the table.']], mnemonic: 'NA + SA = "is at".' },
+    'para': { pos: 'preposition', def: 'for; (on a jeepney) "stop!"', examples: [['Para sa iyo ito.', 'This is for you.']], mnemonic: 'PARA (Spanish) = for.', notes: 'para sa + noun; para kay + name.' },
+    'at': { pos: 'conjunction', def: 'and', examples: [['si Ana at si Ben', 'Ana and Ben']], mnemonic: 'AT = "And Together".' },
+    'oo': { pos: 'interjection', def: 'yes', examples: [['Oo, gutom ako.', "Yes, I'm hungry."]], mnemonic: 'OO = "Oh-oh, yes!"', notes: 'Polite: opo.' },
+    'opo': { pos: 'interjection', def: 'yes (polite, to elders/strangers)', examples: [['Opo, Lola.', 'Yes, Grandma.']], mnemonic: 'oPO = yes + PO (politeness).' },
+    'ano': { pos: 'question word', def: 'what', examples: [['Ano ito?', 'What is this?']], mnemonic: 'ANO? = "Any…what?"' },
+    'sino': { pos: 'question word', def: 'who', examples: [['Sino siya?', 'Who is he/she?']], mnemonic: 'SINO — "see? no idea who".' },
+    'saan': { pos: 'question word', def: 'where (with actions: to/from where)', examples: [['Saan ka pupunta?', 'Where are you going?']], mnemonic: 'SAAN contains SA (place).' , notes: 'Location of a thing: nasaan.' },
   },
 
   levels: {
     beginner: {
-      grammar: [
-        {
-          id: 'tl-b-1', title: 'Sentence order & the markers ang / ng / sa',
-          summary: 'Tagalog puts the comment first, then the topic.',
-          body: `<p>A basic Tagalog sentence is <b>predicate first</b>: what you say about the topic comes before the topic itself.</p>
-<p>{{Maganda ang bahay.}} — literally "Beautiful the house" = The house is beautiful. There is no word for "is".</p>
-<h3>The three markers</h3><table class="conj"><tr><th>Role</th><th>Common nouns</th><th>Personal names</th></tr><tr><td>Topic (ang)</td><td>{{ang}} / {{ang mga}} (pl.)</td><td>{{si}} / {{sina}}</td></tr><tr><td>Non-topic actor / object, possessor (ng)</td><td>{{ng}} / {{ng mga}}</td><td>{{ni}} / {{nina}}</td></tr><tr><td>Direction, location, recipient (sa)</td><td>{{sa}} / {{sa mga}}</td><td>{{kay}} / {{kina}}</td></tr></table>
-<p><b>ay-inversion:</b> you can put the topic first with {{ay}}: {{Ang bahay ay maganda.}} This sounds more formal or written.</p>
-<p>Spelling note: the marker {{ng}} is pronounced "nang".</p>`,
-          examples: [['Guro si Maria.', 'Maria is a teacher.'], ['Masarap ang adobo.', 'The adobo is delicious.'], ['Ang kotse ni Juan ay pula.', "Juan's car is red."], ['Nasa Maynila ang opisina.', 'The office is in Manila.']],
-          vocab: [['guro', 'teacher'], ['masarap', 'delicious'], ['pula', 'red'], ['nasa', 'is at / in'], ['opisina', 'office'], ['kotse', 'car']],
-          exercises: [
-            { type: 'mc', q: '"The food is delicious" =', options: ['Ang pagkain masarap.', 'Masarap ang pagkain.', 'Masarap si pagkain.', 'Pagkain masarap ang.'], answer: 1, explain: 'Predicate first, then ang + topic.' },
-            { type: 'mc', q: '___ Pedro ay doktor.', options: ['Ang', 'Si', 'Ni', 'Kay'], answer: 1, explain: 'Personal name as topic → si.' },
-            { type: 'mc', q: '"Ana\'s house" =', options: ['bahay si Ana', 'bahay ni Ana', 'bahay kay Ana', 'bahay ang Ana'], answer: 1, explain: 'Possessor (name) → ni.' },
-            { type: 'fill', q: 'Pumunta ako ___ palengke. (to the market)', answer: ['sa'], explain: 'Direction → sa.' },
-            { type: 'fill', q: 'Ibigay mo ito ___ Lito. (to Lito)', answer: ['kay'], explain: 'sa for names → kay.' },
-          ],
-        },
-        {
-          id: 'tl-b-2', title: 'Pronouns: ako, ko, akin',
-          summary: 'Three sets of pronouns that match the three markers.',
-          body: `<p>Each pronoun has an <b>ang</b>-form (topic), <b>ng</b>-form (actor/owner) and <b>sa</b>-form (to/for, possessive before nouns).</p>`,
-          table: { title: 'Personal pronouns', plain: [0], headers: ['', 'ang (topic)', 'ng (actor / owner)', 'sa (to, for)'], rows: [['I', 'ako', 'ko', 'akin'], ['you (sg.)', 'ikaw / ka', 'mo', 'iyo'], ['he / she', 'siya', 'niya', 'kaniya'], ['we (excl. you)', 'kami', 'namin', 'amin'], ['we (incl. you)', 'tayo', 'natin', 'atin'], ['you (pl. / polite)', 'kayo', 'ninyo', 'inyo'], ['they', 'sila', 'nila', 'kanila']] },
-          examples: [['Pagod ako.', "I'm tired."], ['Bahay ko ito. / Aking bahay ito.', 'This is my house.'], ['Kain tayo!', "Let's eat! (including you)"], ['Pupunta kami sa Baguio.', "We (not you) are going to Baguio."]],
-          vocab: [['pagod', 'tired'], ['ito', 'this'], ['iyan', 'that (near you)'], ['iyon', 'that (far)']],
-          exercises: [
-            { type: 'mc', q: 'Telling a friend "Let\'s go!" — which "we"?', options: ['kami', 'tayo', 'sila', 'kayo'], answer: 1, explain: 'tayo includes the listener.' },
-            { type: 'mc', q: '"my friend" =', options: ['kaibigan ako', 'kaibigan ko', 'kaibigan akin', 'ako kaibigan'], answer: 1, explain: 'Possessor after noun → ko.' },
-            { type: 'fill', q: 'Gutom ___. (I am hungry)', answer: ['ako'], explain: 'Topic → ako.' },
-            { type: 'mc', q: '"Ikaw" vs "ka": "Are you a student?" =', options: ['Estudyante ikaw ba?', 'Estudyante ka ba?', 'Ka estudyante ba?', 'Estudyante mo ba?'], answer: 1, explain: 'After the predicate, use the short form ka.' },
-          ],
-        },
-        {
-          id: 'tl-b-3', title: 'The linker: na / -ng',
-          summary: 'Glue between adjectives and nouns.',
-          body: `<p>When a word describes another, connect them with a <b>linker</b>:</p><ul><li>After a <b>vowel</b>: add <b>-ng</b> → {{magandang babae}} (beautiful woman)</li><li>After <b>n</b>: the n becomes <b>-ng</b> → {{bayan}} → {{bayang}}, {{luntian}} → {{luntiang dahon}} (green leaf)</li><li>After any other <b>consonant</b>: use {{na}} → {{mabait na bata}} (kind child)</li></ul><p>Order can flip with no change in meaning: {{bahay na malaki}} = {{malaking bahay}} (big house).</p><p>Linkers also join numbers ({{dalawang aso}}), and verbs with their complements ({{Gusto kong kumain}} — I want to eat).</p>`,
-          examples: [['Magandang umaga!', 'Good morning!'], ['Malaking bahay', 'big house'], ['Mabait na tao', 'kind person'], ['Tatlong kapatid', 'three siblings'], ['Gusto kong matuto ng Tagalog.', 'I want to learn Tagalog.']],
-          vocab: [['malaki', 'big'], ['maliit', 'small'], ['mabait', 'kind'], ['babae', 'woman'], ['lalaki', 'man'], ['gusto', 'want / like']],
-          exercises: [
-            { type: 'fill', q: 'malaki + bahay = ___ bahay', answer: ['malaking'], explain: 'Ends in a vowel → -ng.' },
-            { type: 'mc', q: '"kind teacher" =', options: ['mabaitng guro', 'mabait na guro', 'mabait guro', 'mabaiting guro'], answer: 1, explain: 'Ends in t → na.' },
-            { type: 'fill', q: 'dalawa + aso = ___ aso (two dogs)', answer: ['dalawang'], explain: 'Numbers take linkers too.' },
-            { type: 'mc', q: '"I want to sleep" =', options: ['Gusto ko matulog.', 'Gusto kong matulog.', 'Gusto akong matulog.', 'Ako gusto matulog.'], answer: 1, explain: 'ko + linker -ng → kong.' },
-          ],
-        },
-        {
-          id: 'tl-b-4', title: 'May, mayroon & wala',
-          summary: 'There is / have, and there isn\'t.',
-          body: `<ul><li>{{may}} + noun directly: {{May pera ako.}} (I have money.)</li><li>{{mayroon}} (casual: {{meron}}) when a pronoun or particle comes next, with a linker: {{Mayroon akong pera.}}</li><li>{{wala}} — negative, also with a linker: {{Wala akong pera.}} (I have no money.) / {{Walang tao.}} (There's nobody.)</li></ul><p>Answering "Do you have…?" → {{Mayroon.}} / {{Meron.}} (Yes, I do.) or {{Wala.}} (No, I don't.)</p>`,
-          examples: [['May tanong ako.', 'I have a question.'], ['Mayroon ka bang kotse?', 'Do you have a car?'], ['Wala kaming klase bukas.', "We don't have class tomorrow."], ['May tao ba sa loob?', 'Is there anyone inside?']],
-          vocab: [['pera', 'money'], ['tanong', 'question'], ['klase', 'class'], ['loob', 'inside'], ['tao', 'person']],
-          exercises: [
-            { type: 'mc', q: '"I have a dog" =', options: ['Mayroon aso ako.', 'May aso ako.', 'Wala aso ako.', 'May ako aso.'], answer: 1, explain: 'may + noun.' },
-            { type: 'fill', q: '___ akong kapatid. (I don\'t have siblings)', answer: ['wala', 'Wala'], explain: 'wala + linker on the pronoun → akong.' },
-            { type: 'mc', q: '"Do you have time?" =', options: ['May ka bang oras?', 'Mayroon ka bang oras?', 'Mayroon oras ka ba?', 'Wala ka oras?'], answer: 1, explain: 'mayroon before pronoun.' },
-          ],
-        },
-        {
-          id: 'tl-b-5', title: '-um- verbs & aspect',
-          summary: 'Tagalog marks aspect (done / ongoing / not yet), not tense.',
-          body: `<p>Tagalog verbs show whether an action is <b>completed</b>, <b>incomplete</b> (ongoing/habitual) or <b>contemplated</b> (not yet begun).</p><p>The <b>-um-</b> affix creates actor-focus verbs. Insert it after the first consonant (or put {{um-}} before a vowel):</p>
-<ul><li><b>Infinitive / completed:</b> root + -um- → {{kumain}} (to eat / ate)</li><li><b>Incomplete:</b> -um- + repeat first syllable → {{kumakain}} (eating / eats)</li><li><b>Contemplated:</b> repeat first syllable, no -um- → {{kakain}} (will eat)</li></ul>
-<p>The actor is the topic: {{Kumain ako ng mangga}} — I ate (a) mango. The object takes {{ng}} and is usually indefinite.</p>`,
-          table: { title: '-um- aspect chart', headers: ['Root', 'Completed', 'Incomplete', 'Contemplated'], rows: [['kain (eat)', 'kumain', 'kumakain', 'kakain'], ['inom (drink)', 'uminom', 'umiinom', 'iinom'], ['bili (buy)', 'bumili', 'bumibili', 'bibili'], ['punta (go)', 'pumunta', 'pumupunta', 'pupunta'], ['alis (leave)', 'umalis', 'umaalis', 'aalis']] },
-          examples: [['Kumain na ako.', "I've already eaten."], ['Umiinom siya ng kape tuwing umaga.', 'She drinks coffee every morning.'], ['Pupunta kami sa beach bukas.', "We'll go to the beach tomorrow."], ['Bumili si Ben ng sapatos.', 'Ben bought shoes.']],
-          vocab: [['na', 'already'], ['tuwing', 'every'], ['bukas', 'tomorrow'], ['kahapon', 'yesterday'], ['ngayon', 'now / today'], ['sapatos', 'shoes']],
-          exercises: [
-            { type: 'fill', q: 'Kahapon, ___ (bili) ako ng tinapay.', answer: ['bumili'], explain: 'Completed: b-um-ili.' },
-            { type: 'fill', q: 'Bukas, ___ (inom) ako ng gamot.', answer: ['iinom'], explain: 'Contemplated: repeat first syllable "i".' },
-            { type: 'mc', q: '"She is eating now" =', options: ['Kumain siya ngayon.', 'Kumakain siya ngayon.', 'Kakain siya ngayon.', 'Kain siya ngayon.'], answer: 1, explain: 'Incomplete (ongoing) → kumakain.' },
-            { type: 'mc', q: 'Contemplated aspect of "pumunta":', options: ['pumupunta', 'pupunta', 'pumunta', 'punta'], answer: 1, explain: 'pu-punta.' },
-          ],
-        },
-        {
-          id: 'tl-b-6', title: 'Questions & politeness (po, ba)',
-          summary: 'Asking questions and showing respect.',
-          body: `<ul><li>{{Ano}} — what · {{Sino}} — who · {{Saan}} — where</li><li>{{Kailan}} — when · {{Bakit}} — why · {{Paano}} — how</li><li>{{Magkano}} — how much (price) · {{Ilan}} — how many</li></ul>
-<p>Yes/no questions add the particle {{ba}}: {{Gutom ka ba?}} (Are you hungry?)</p>
-<p><b>Respect:</b> add {{po}} (or {{ho}}) when talking to elders, strangers, customers: {{Salamat po.}} "Yes" becomes {{opo}}. With {{po}}, use plural {{kayo / ninyo}} for "you".</p>
-<p>Word order: short pronouns ({{ka}}, {{ko}}, {{mo}}) come <b>before</b> particles like {{ba}}, {{na}}, {{po}}: {{Kumain ka na ba?}}</p>`,
-          examples: [['Ano ang pangalan mo?', "What's your name?"], ['Saan po kayo nakatira?', 'Where do you live? (polite)'], ['Magkano po ito?', 'How much is this?'], ['Kumain ka na ba?', 'Have you eaten yet?']],
-          vocab: [['pangalan', 'name'], ['nakatira', 'living (somewhere)'], ['opo', 'yes (polite)'], ['oo', 'yes'], ['ito', 'this']],
-          exercises: [
-            { type: 'mc', q: 'At a market: "How much is this?" =', options: ['Ilan po ito?', 'Magkano po ito?', 'Ano po ito?', 'Saan po ito?'], answer: 1, explain: 'magkano = price.' },
-            { type: 'fill', q: '___ ka pupunta? (Where)', answer: ['saan', 'Saan'], explain: 'saan = where.' },
-            { type: 'mc', q: 'Respectful "yes" to your grandmother:', options: ['Oo', 'Opo', 'Hindi po', 'Ba'], answer: 1, explain: 'opo.' },
-            { type: 'mc', q: 'Correct order:', options: ['Kumain na ba ka?', 'Kumain ka na ba?', 'Ka kumain na ba?', 'Kumain ba na ka?'], answer: 1, explain: 'Monosyllabic pronoun ka before particles.' },
-          ],
-        },
-      ],
+      grammar: G.beginner,
       reading: [
         {
           id: 'tl-br-1', title: 'Ang Pamilya Ko',
@@ -293,65 +242,7 @@ export default {
     },
 
     intermediate: {
-      grammar: [
-        {
-          id: 'tl-i-1', title: 'mag- verbs (actor focus)',
-          summary: 'The other big actor-focus affix.',
-          body: `<p>{{mag-}} verbs are actor-focus like {{-um-}}, often for deliberate or outward actions.</p><ul><li>Infinitive: {{magluto}} (to cook)</li><li>Completed: {{mag-}} → {{nag-}}: {{nagluto}}</li><li>Incomplete: {{nag-}} + repeat first syllable of root: {{nagluluto}}</li><li>Contemplated: {{mag-}} + repeat: {{magluluto}}</li></ul><p>Some roots take both affixes with different meanings: {{bumili}} (buy) vs {{magbili}} (sell, old-fashioned; today {{magbenta}}). {{umakyat}} (climb up) vs {{mag-akyat}} (bring something up).</p>`,
-          table: { title: 'mag- aspect chart', headers: ['Root', 'Completed', 'Incomplete', 'Contemplated'], rows: [['luto (cook)', 'nagluto', 'nagluluto', 'magluluto'], ['basa (read)', 'nagbasa', 'nagbabasa', 'magbabasa'], ['trabaho (work)', 'nagtrabaho', 'nagtatrabaho', 'magtatrabaho'], ['laro (play)', 'naglaro', 'naglalaro', 'maglalaro'], ['aral (study)', 'nag-aral', 'nag-aaral', 'mag-aaral']] },
-          examples: [['Nagtatrabaho siya sa ospital.', 'She works at a hospital.'], ['Naglaro ang mga bata sa labas.', 'The children played outside.'], ['Mag-aaral ako mamayang gabi.', "I'll study tonight."]],
-          vocab: [['ospital', 'hospital'], ['labas', 'outside'], ['mamaya', 'later'], ['mag-aral', 'to study'], ['maglaro', 'to play']],
-          exercises: [
-            { type: 'fill', q: 'Kahapon, ___ (luto) si Tatay ng sinigang.', answer: ['nagluto'], explain: 'Completed → nag-.' },
-            { type: 'fill', q: 'Ngayon, ___ (basa) ako ng balita.', answer: ['nagbabasa'], explain: 'Incomplete → nag- + ba-basa.' },
-            { type: 'mc', q: 'Contemplated aspect of "maglaro":', options: ['naglalaro', 'maglalaro', 'naglaro', 'lalaro'], answer: 1, explain: 'mag- + la-laro.' },
-          ],
-        },
-        {
-          id: 'tl-i-2', title: 'Object focus with -in',
-          summary: 'When the thing acted on is the topic.',
-          body: `<p>With <b>object focus</b>, the object becomes the {{ang}}-topic and the actor takes {{ng}}. Use it when the object is <b>specific/definite</b>.</p>
-<ul><li>{{Kumain ako ng mangga.}} — I ate a mango (some mango; actor focus).</li><li>{{Kinain ko ang mangga.}} — I ate <i>the</i> mango (object focus).</li></ul>
-<table class="conj"><tr><th>Aspect</th><th>Form</th><th>kain</th><th>basa</th></tr><tr><td>Infinitive / command</td><td>root + -in</td><td>kainin</td><td>basahin</td></tr><tr><td>Completed</td><td>-in- infix</td><td>kinain</td><td>binasa</td></tr><tr><td>Incomplete</td><td>-in- + reduplication</td><td>kinakain</td><td>binabasa</td></tr><tr><td>Contemplated</td><td>reduplication + -in</td><td>kakainin</td><td>babasahin</td></tr></table>
-<p>Roots ending in a vowel often add <b>-hin</b> ({{basahin}}). Roots starting with <b>l</b> or <b>y</b> use {{ni-}} in the past: {{niluto}}, {{niyakap}}.</p>
-<p>Commands are usually object focus: {{Kainin mo ito.}} (Eat this.) {{Gawin mo na!}} (Do it now!)</p>`,
-          examples: [['Binasa ko na ang libro.', "I've already read the book."], ['Niluluto ni Lola ang adobo.', 'Grandma is cooking the adobo.'], ['Gagawin namin ang proyekto bukas.', "We'll do the project tomorrow."], ['Inumin mo ang gamot.', 'Take (drink) the medicine.']],
-          vocab: [['libro', 'book'], ['gamot', 'medicine'], ['proyekto', 'project'], ['yakap', 'hug']],
-          exercises: [
-            { type: 'mc', q: '"I read the letter" (specific) =', options: ['Nagbasa ako ng sulat.', 'Binasa ko ang sulat.', 'Binasa ako ang sulat.', 'Nagbasa ko ang sulat.'], answer: 1, explain: 'Definite object → object focus, actor in ng-form.' },
-            { type: 'fill', q: 'Kahapon, ___ (kain) ng pusa ang isda.', answer: ['kinain'], explain: 'Completed object focus → -in- infix.' },
-            { type: 'fill', q: '___ (gawa) mo na ang assignment mo! (command)', answer: ['gawin', 'Gawin'], explain: 'gawa + -in → gawin.' },
-            { type: 'mc', q: 'Completed object focus of "luto":', options: ['linuto', 'niluto', 'nagluto', 'lutuin'], answer: 1, explain: 'l-initial → ni-.' },
-          ],
-        },
-        {
-          id: 'tl-i-3', title: 'Locative focus with -an',
-          summary: 'The place, person or surface affected is the topic.',
-          body: `<p>{{-an}} (or {{-han}} after vowels) focuses the <b>location, direction, or recipient</b> of an action — often things that get cleaned, visited, or given to.</p>
-<ul><li>Infinitive: {{hugasan}} (wash something), {{puntahan}} (go to a place)</li><li>Completed: -in- + -an: {{hinugasan}}, {{pinuntahan}}</li><li>Incomplete: {{hinuhugasan}}, {{pinupuntahan}}</li><li>Contemplated: {{huhugasan}}, {{pupuntahan}}</li></ul>`,
-          examples: [['Hugasan mo ang pinggan.', 'Wash the dishes.'], ['Pinuntahan namin si Lola sa probinsya.', 'We visited Grandma in the province.'], ['Tinulungan niya ako.', 'He helped me.'], ['Bibigyan kita ng regalo.', "I'll give you a gift."]],
-          vocab: [['hugas', 'wash'], ['pinggan', 'plate, dish'], ['tulong', 'help'], ['probinsya', 'province']],
-          exercises: [
-            { type: 'mc', q: '"Help me!" =', options: ['Tumulong mo ako!', 'Tulungan mo ako!', 'Tulungin mo ako!', 'Tulong ako!'], answer: 1, explain: 'Person helped is the topic → tulungan.' },
-            { type: 'fill', q: 'Kahapon, ___ (puntahan, completed) namin ang museo.', answer: ['pinuntahan'], explain: '-in- + -an.' },
-            { type: 'mc', q: 'In "Hinugasan ko ang kotse", what is the topic?', options: ['ko', 'ang kotse', 'hinugasan', 'none'], answer: 1, explain: 'ang marks the topic (the car).' },
-          ],
-        },
-        {
-          id: 'tl-i-4', title: 'Enclitic particles: na, pa, rin, lang, naman…',
-          summary: 'Small words that give Tagalog its flavor.',
-          body: `<ul><li>{{na}} — already / now: {{Tara na!}} (Let's go now!)</li><li>{{pa}} — still / yet / more: {{Hindi pa}} (not yet), {{Isa pa}} (one more)</li><li>{{din / rin}} — also ({{rin}} after vowels): {{Ako rin}}</li><li>{{lang / lamang}} — only, just: {{Sandali lang}} (just a moment)</li><li>{{naman}} — softener / contrast: {{Ikaw naman?}} (And you?), {{Mabuti naman}} (I'm fine)</li><li>{{nga}} — indeed / please: {{Pakiabot nga}} (Please pass it)</li><li>{{daw / raw}} — reportedly, "they say"</li><li>{{kasi}} — because</li></ul>
-<p><b>Order:</b> one-syllable pronouns ({{ka}}, {{ko}}, {{mo}}) come before particles; two-syllable pronouns ({{siya}}, {{kami}}) come after: {{Kumain ka na ba?}} vs {{Kumain na ba siya?}}</p>`,
-          examples: [['Hindi pa ako kumakain.', "I haven't eaten yet."], ['Pagod na rin ako.', "I'm tired too now."], ['Sandali lang po.', 'Just a moment, please.'], ['Darating daw siya bukas.', "He's supposedly coming tomorrow."]],
-          vocab: [['tara', "let's go"], ['sandali', 'moment'], ['darating', 'will arrive'], ['paki-', 'please (request prefix)']],
-          exercises: [
-            { type: 'mc', q: '"Not yet" =', options: ['Hindi na', 'Hindi pa', 'Hindi rin', 'Hindi lang'], answer: 1, explain: 'pa = yet / still.' },
-            { type: 'mc', q: '"Me too" =', options: ['Ako na', 'Ako rin', 'Ako pa', 'Ako lang'], answer: 1, explain: 'rin after a vowel (ako); din after a consonant. You will hear both in casual speech.' },
-            { type: 'mc', q: 'Correct word order:', options: ['Umalis na ba siya?', 'Umalis siya na ba?', 'Umalis ba siya na?', 'Siya umalis na ba?'], answer: 0, explain: 'Two-syllable pronoun after particles.' },
-            { type: 'fill', q: 'Isa ___ po! (One more, please!)', answer: ['pa'], explain: 'pa = more.' },
-          ],
-        },
-      ],
+      grammar: G.intermediate,
       reading: [
         {
           id: 'tl-ir-1', title: 'Ang Pasko sa Pilipinas',
@@ -405,66 +296,7 @@ export default {
     },
 
     advanced: {
-      grammar: [
-        {
-          id: 'tl-a-1', title: 'Conveyance & benefactive focus: i- and ipag-',
-          summary: 'Focus on the thing moved, or the person benefiting.',
-          body: `<p><b>i-</b> (conveyance) makes the thing <b>moved, given, or put</b> the topic: {{Ibigay mo ito kay Ana}} (Give this to Ana), {{Ilagay mo ang libro sa mesa}}.</p>
-<p>Aspects: {{ibigay}} → completed {{ibinigay}} → incomplete {{ibinibigay}} → contemplated {{ibibigay}}.</p>
-<p><b>ipag- / i-</b> (benefactive) makes the <b>beneficiary</b> the topic: {{Ipagluto mo ako ng adobo}} (Cook adobo for me). {{Ibili mo ako ng tinapay}} (Buy me some bread).</p>
-<p>Aspects of ipag-: {{ipagluto}} → {{ipinagluto}} → {{ipinagluluto}} → {{ipagluluto}}.</p>
-<p>Compare one event in three focuses with {{bigay}}: {{Nagbigay ako ng regalo kay Ana}} (actor), {{Ibinigay ko ang regalo kay Ana}} (the gift), {{Binigyan ko si Ana ng regalo}} (Ana, the receiver).</p>`,
-          examples: [['Ibinigay ni Lolo ang relo sa akin.', 'Grandpa gave the watch to me.'], ['Ipinagluto ako ni Nanay ng sinigang.', 'Mom cooked sinigang for me.'], ['Itatapon ko na ang mga lumang damit.', "I'll throw away the old clothes."], ['Ibili mo naman ako ng kape.', 'Buy me a coffee, would you?']],
-          vocab: [['ilagay', 'to put'], ['itapon', 'to throw away'], ['relo', 'watch'], ['damit', 'clothes']],
-          exercises: [
-            { type: 'mc', q: '"I put the keys on the table" (the keys are focus) =', options: ['Naglagay ako ng susi sa mesa.', 'Inilagay ko ang susi sa mesa.', 'Nilagyan ko ang susi sa mesa.', 'Inilagay ako ang susi.'], answer: 1, explain: 'Conveyance i- → inilagay (completed).' },
-            { type: 'fill', q: '___ (ipagluto, completed) ako ni Lola ng pansit.', answer: ['ipinagluto', 'Ipinagluto'], explain: 'ipag- completed → ipinag-.' },
-            { type: 'mc', q: 'Which sentence focuses the receiver?', options: ['Ibinigay ko ang pera.', 'Binigyan ko siya ng pera.', 'Nagbigay ako ng pera.', 'Magbibigay ako.'], answer: 1, explain: '-an locative focus on the receiver.' },
-            { type: 'fill', q: 'Bukas, ___ (ibigay, contemplated) ko ito sa iyo.', answer: ['ibibigay'], explain: 'i- + bi-bigay.' },
-          ],
-        },
-        {
-          id: 'tl-a-2', title: 'Abilitative & involuntary: maka- / ma-',
-          summary: '"Can / managed to" and things that just happen.',
-          body: `<p><b>maka-</b> (actor focus) expresses ability or accidental/achieved action: {{makakain}} (be able to eat). Completed: {{nakakain}}; incomplete: {{nakakakain}}; contemplated: {{makakakain}}.</p>
-<p><b>ma-</b> (object focus) does the same with the object as topic: {{Nabasa ko ang email}} (I [managed to / happened to] read the email). Very common with perception verbs: {{makita}} (see), {{marinig}} (hear), {{maintindihan}} (understand).</p>
-<p>Negative ability: {{Hindi ko maintindihan}} (I can't understand). {{Hindi ako makatulog}} (I can't sleep).</p>
-<p>Many ma- verbs describe involuntary states: {{matulog}} (sleep), {{maligaw}} (get lost), {{mahulog}} (fall), {{masira}} (break down).</p>`,
-          examples: [['Hindi ako makatulog kagabi.', "I couldn't sleep last night."], ['Nakita mo ba ang susi ko?', 'Did you see my keys?'], ['Naintindihan ko na!', 'I get it now!'], ['Naligaw kami sa Quiapo.', 'We got lost in Quiapo.'], ['Nasira ang cellphone ko.', 'My phone broke.']],
-          vocab: [['kagabi', 'last night'], ['marinig', 'to hear'], ['maintindihan', 'to understand'], ['maligaw', 'to get lost'], ['masira', 'to break down']],
-          exercises: [
-            { type: 'mc', q: '"I can\'t hear you" =', options: ['Hindi kita naririnig.', 'Hindi kita marinig.', 'Both are possible (ongoing vs. ability)', 'Hindi ako rinig.'], answer: 2, explain: 'naririnig = not hearing (now); marinig = can\'t hear.' },
-            { type: 'fill', q: 'Kahapon, ___ (makita, completed) ko si Ben sa mall.', answer: ['nakita'], explain: 'ma- completed → na-.' },
-            { type: 'mc', q: '"He wasn\'t able to come" =', options: ['Hindi siya nakapunta.', 'Hindi siya pumunta.', 'Hindi siya pupunta.', 'Hindi siya makapupunta.'], answer: 0, explain: 'Completed abilitative → naka-.' },
-          ],
-        },
-        {
-          id: 'tl-a-3', title: 'Causatives: magpa-, ipa-, pa-…-in',
-          summary: 'Making or letting someone do something.',
-          body: `<ul><li><b>magpa-</b> (actor = causer): {{Nagpagupit ako}} — I had my hair cut. {{Magpapagawa kami ng bahay}} — We'll have a house built.</li><li><b>ipa-</b> (object = thing to be done): {{Ipinaayos ko ang kotse}} — I had the car fixed. {{Ipapalaba ko ito}} — I'll have this laundered.</li><li><b>pa-…-in</b> (causee = topic): {{Pinakain niya ang aso}} — She fed the dog (made the dog eat). {{Pinatulog ko ang bata}} — I put the child to sleep.</li><li><b>paki-</b> polite requests: {{Pakiabot ng asin}} — Please pass the salt.</li></ul>`,
-          examples: [['Nagpasundo ako sa kapatid ko.', 'I had my sibling pick me up.'], ['Ipinadala niya ang pera sa probinsya.', 'He sent (had sent) the money to the province.'], ['Pinaupo ng guro ang mga estudyante.', 'The teacher had the students sit down.'], ['Pakisara ng pinto.', 'Please close the door.']],
-          vocab: [['gupit', 'haircut'], ['ayos', 'fix, order'], ['sundo', 'pick up (someone)'], ['upo', 'sit'], ['sara', 'close']],
-          exercises: [
-            { type: 'mc', q: '"I had my phone repaired" =', options: ['Inayos ko ang cellphone.', 'Ipinaayos ko ang cellphone.', 'Nag-ayos ako ng cellphone.', 'Naayos ko ang cellphone.'], answer: 1, explain: 'ipa- causative, object focus.' },
-            { type: 'mc', q: '"She fed the baby" =', options: ['Kumain siya ng baby.', 'Pinakain niya ang baby.', 'Kinain niya ang baby.', 'Nagpakain ang baby.'], answer: 1, explain: 'pa-…-in: make the baby eat. (Careful — "kinain niya ang baby" means she ate the baby!)' },
-            { type: 'fill', q: '___abot ng tubig. (Please pass the water)', answer: ['paki', 'Paki'], explain: 'paki- = please.' },
-          ],
-        },
-        {
-          id: 'tl-a-4', title: 'Recent perfective: ka- + reduplication',
-          summary: '"Just did" — with a twist in the actor marking.',
-          body: `<p>To say something <b>just</b> happened, use {{ka-}} + first syllable reduplicated + root, usually with {{lang}}: {{kakakain}} (just ate), {{kararating}} (just arrived; d → r between vowels), {{kaaalis}} (just left).</p>
-<p><b>Key quirk:</b> the actor takes the <b>ng-form</b> and there is no {{ang}}-topic: {{Kakakain ko lang.}} (I just ate.) — not *Kakakain ako lang*.</p>
-<p>Colloquially you'll also hear {{kakarating}}, {{kakaalis}} (with "ka-ka-").</p>`,
-          examples: [['Kakakain ko lang, busog pa ako.', "I just ate, I'm still full."], ['Kararating lang ni Mia galing Dubai.', 'Mia just arrived from Dubai.'], ['Kaaalis lang nila.', 'They just left.'], ['Kagigising ko lang.', 'I just woke up.']],
-          vocab: [['busog', 'full (after eating)'], ['galing', 'coming from'], ['gising', 'awake']],
-          exercises: [
-            { type: 'mc', q: '"I just arrived" =', options: ['Kararating ako lang.', 'Kararating ko lang.', 'Dumating lang ako.', 'Darating ko lang.'], answer: 1, explain: 'Recent perfective → ng-form actor.' },
-            { type: 'fill', q: '___ ko lang. (I just woke up — gising)', answer: ['kagigising', 'Kagigising'], explain: 'ka + gi + gising.' },
-            { type: 'mc', q: 'Who is the actor in "Kaaalis lang ni Paolo"?', options: ['Nobody', 'Paolo', 'lang', 'unclear'], answer: 1, explain: 'ni Paolo = actor (ng-form for names).' },
-          ],
-        },
-      ],
+      grammar: G.advanced,
       reading: [
         {
           id: 'tl-ar-1', title: 'Ang Diwa ng Bayanihan',
