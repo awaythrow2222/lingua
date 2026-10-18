@@ -21,6 +21,7 @@
 body[data-lang="fr"] { --accent: #2f55d4; --accent-soft: #e5ebfd; }
 body[data-lang="es"] { --accent: #c4402b; --accent-soft: #fbe7e2; }
 body[data-lang="tl"] { --accent: #0d8a7a; --accent-soft: #dcf3ef; }
+body[data-lang="en"] { --accent: #6d3fc4; --accent-soft: #eee6fb; }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -33,6 +34,7 @@ body[data-lang="tl"] { --accent: #0d8a7a; --accent-soft: #dcf3ef; }
   :root:not([data-theme="light"]) body[data-lang="fr"] { --accent: #8aa4ff; --accent-soft: #232c4a; }
   :root:not([data-theme="light"]) body[data-lang="es"] { --accent: #ff8a73; --accent-soft: #452720; }
   :root:not([data-theme="light"]) body[data-lang="tl"] { --accent: #4fd1bd; --accent-soft: #173a35; }
+  :root:not([data-theme="light"]) body[data-lang="en"] { --accent: #b598f5; --accent-soft: #2f2448; }
 }
 :root[data-theme="dark"] {
   --bg: #15140f; --surface: #1f1e19; --surface-2: #2a2822; --border: #3a372f;
@@ -44,6 +46,7 @@ body[data-lang="tl"] { --accent: #0d8a7a; --accent-soft: #dcf3ef; }
 :root[data-theme="dark"] body[data-lang="fr"] { --accent: #8aa4ff; --accent-soft: #232c4a; }
 :root[data-theme="dark"] body[data-lang="es"] { --accent: #ff8a73; --accent-soft: #452720; }
 :root[data-theme="dark"] body[data-lang="tl"] { --accent: #4fd1bd; --accent-soft: #173a35; }
+:root[data-theme="dark"] body[data-lang="en"] { --accent: #b598f5; --accent-soft: #2f2448; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -156,6 +159,9 @@ table.conj th { background: var(--surface-2); font-weight: 600; }
 .w.active { background: var(--accent); color: #fff; }
 .target { font-size: 1.05rem; }
 .passage { font-size: 1.12rem; line-height: 1.85; }
+.passage.literary { font-family: Georgia, "Times New Roman", serif; font-size: 1.15rem; }
+.passage.literary p { margin-bottom: 1em; }
+.word-card .wc-word { font-family: var(--display); font-size: 1.7rem; font-weight: 700; }
 
 /* Exercises */
 .ex { padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; background: var(--surface); }

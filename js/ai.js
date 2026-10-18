@@ -7,7 +7,7 @@ export const MODELS = [
   { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 — fast, lower cost' },
   { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5 — fastest, cheapest' },
 ];
-const LANG_NAMES = { fr: 'French', es: 'Spanish', tl: 'Tagalog (Filipino)' };
+const LANG_NAMES = { fr: 'French', es: 'Spanish', tl: 'Tagalog (Filipino)', en: 'English' };
 
 let clientPromise = null;
 let clientKey = null;
@@ -46,16 +46,20 @@ export function friendlyError(e) {
 
 function tutorSystem(ctx) {
   const lv = store.get().levels;
-  return `You are a warm, sharp language tutor inside "Lingua", a grammar-focused study app for French, Spanish and Tagalog.
+  const focus = ctx.lang === 'en'
+    ? `They are currently on the Advanced English track (advanced grammar, precise usage, literary reading, and sophisticated vocabulary), on the "${ctx.page}" page.`
+    : `They are currently studying ${LANG_NAMES[ctx.lang]} at the ${lv[ctx.lang]} level, on the "${ctx.page}" page.`;
+  return `You are a warm, sharp language tutor inside "Lingua", a grammar-focused study app for French, Spanish, Tagalog and advanced English.
 
-Learner profile: French — ${lv.fr}; Spanish — ${lv.es}; Tagalog — ${lv.tl}.
-They are currently studying ${LANG_NAMES[ctx.lang]} at the ${lv[ctx.lang]} level, on the "${ctx.page}" page.
+Learner profile: French — ${lv.fr}; Spanish — ${lv.es}; Tagalog — ${lv.tl}; English — advanced.
+${focus}
 ${ctx.content ? `What is on their screen right now:\n<screen>\n${ctx.content.slice(0, 6000)}\n</screen>` : ''}
 
 How to tutor:
 - Match the level. Beginners: explain in English, keep target-language examples short, always give translations. Intermediate: mix, translate harder bits. Advanced: you may answer mostly in the target language, focus on nuance, register, regional variation and native-like phrasing.
 - Grammar first: name the rule, show the pattern, give 2–3 examples, flag common mistakes.
 - When correcting a sentence, show the corrected version, then explain each change briefly.
+- For advanced English, answer like an expert editor and linguist: name the construction, distinguish formal/prescriptive rules from common usage, and give polished examples. When discussing literature, interpret closely (tone, irony, rhetoric, historical context) and quote only short phrases.
 - For Tagalog, be precise about verb focus (actor/object/locative/benefactive), aspect (completed/incomplete/contemplated), ang/ng/sa markers, and note Taglish where natural.
 - Offer a memorable hook (mnemonic, cognate, image) when teaching vocabulary.
 - Be concise: short paragraphs, lists, **bold** for key forms. End with a quick check question when it helps.`;
@@ -121,6 +125,23 @@ export async function lookupWord(lang, word, sentence) {
   const cache = store.get().aiCache;
   if (cache[ck]) return cache[ck];
   const level = store.get().levels[lang];
+  if (lang === 'en') {
+    const d = await jsonCall(
+      `Explain the English word "${word}" for an advanced speaker building a sophisticated vocabulary.${sentence ? `\nIt appeared in: "${sentence}"` : ''}
+Return:
+- lemma: dictionary form
+- pos: part of speech
+- definition: precise meaning as used here (add a second sense if common)
+- notes: 1–2 sentences on register, connotation, common confusions or misuse, and etymology
+- conjugations: one table {title, rows of [label, form]}. Verbs: base, 3rd-person singular, past, past participle, present participle. Nouns: singular, plural. Adjectives: comparative/superlative or adverb form. Function words: empty array.
+- examples: 3 polished sentences {t: sentence, en: one-line note on the nuance shown}
+- mnemonic: one vivid memory hook (word parts, sound-alike, image or story)
+- related: up to 4 synonyms/antonyms with a short gloss showing how they differ`,
+      WORD_SCHEMA, 'low');
+    cache[ck] = d;
+    store.save();
+    return d;
+  }
   const data = await jsonCall(
     `Explain the ${LANG_NAMES[lang]} word "${word}" for a ${level} English-speaking learner.${sentence ? `\nIt appeared in: "${sentence}"` : ''}
 Return:
@@ -172,4 +193,57 @@ Return:
   cache[ck] = data;
   store.save();
   return data;
+}
+
+const LIT_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['context', 'questions', 'vocab'],
+  properties: { context: str, questions: { type: 'array', items: QUESTION }, vocab: { type: 'array', items: { type: 'array', items: str } } },
+};
+
+/** Questions and a glossary for a verbatim literary excerpt, cached per excerpt. */
+export async function literatureQuestions(p) {
+  const ck = `litq:${p.id}`;
+  const cache = store.get().aiCache;
+  if (cache[ck]) return cache[ck];
+  const data = await jsonCall(
+    `Here is a verbatim excerpt from ${p.title} by ${p.author} (${p.year}):
+<excerpt>
+${p.sentences.join('\n\n')}
+</excerpt>
+Create a reading exercise for an advanced adult reader of English:
+- context: 1–2 sentences situating the excerpt in the work (who is speaking or what is happening), with no major plot spoilers
+- questions: exactly 4 multiple-choice questions, 4 options each: one on a word's meaning in context, one inference question, one on tone or a rhetorical/literary device, one on a notable grammatical or stylistic feature of a specific phrase. answer = index of the correct option. explain = 1–2 sentences quoting the relevant words.
+- vocab: 6 advanced or archaic words/phrases from the excerpt as [word, concise definition as used here]`,
+    LIT_SCHEMA, 'low');
+  cache[ck] = data;
+  store.save();
+  return data;
+}
+
+const WORDS_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['words'],
+  properties: {
+    words: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false, required: ['word', 'pos', 'definition', 'example', 'mnemonic', 'note'],
+        properties: { word: str, pos: str, definition: str, example: str, mnemonic: str, note: str },
+      },
+    },
+  },
+};
+
+/** Five more advanced-but-common English words for today, avoiding ones already seen. Cached per day. */
+export async function moreWords(avoid) {
+  const ck = `words:en:${store.today()}`;
+  const cache = store.get().aiCache;
+  if (cache[ck]) return cache[ck];
+  const data = await jsonCall(
+    `Suggest 5 advanced English words that educated speakers genuinely use in journalism, business, and literary writing (not obscure dictionary curiosities). Vary the parts of speech.
+Do NOT use any of these: ${avoid.slice(0, 400).join(', ')}.
+For each: word, pos, definition (precise, one line), example (one natural sentence using the word), mnemonic (a vivid memory hook), note (usage tip, common confusion, or etymology in one sentence).`,
+    WORDS_SCHEMA, 'low');
+  cache[ck] = data.words;
+  store.save();
+  return data.words;
 }

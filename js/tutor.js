@@ -11,6 +11,7 @@ let pageName = 'Today';
 const SUGGEST = {
   es: ['¿Cuándo uso el subjuntivo imperfecto?', 'Check my sentence: Si tendría tiempo, iría.', 'Diferencia entre "por" y "para" con ejemplos', 'Give me 5 Mexican vs. Spain slang pairs'],
   fr: ['When do I use être vs avoir in the past?', 'Check my sentence: Je suis 25 ans.', 'How do I pronounce the French "r"?', 'Teach me 5 phrases for a café'],
+  en: ['When is "whom" required, and when is it stuffy?', 'Check my sentence: Neither of the options are ideal.', 'Explain the irony in the opening of Pride and Prejudice', 'Give me 5 words to replace "very important"'],
   tl: ['Explain ang / ng / sa simply', 'When do I use -um- vs mag-?', 'Check my sentence: Kumain ako ang mangga.', 'How do I use "po" politely?'],
 };
 
@@ -18,7 +19,7 @@ export function setTutorPage(name) { pageName = name; updateCtx(); }
 
 function updateCtx() {
   const s = store.get();
-  $('#tutorCtx').textContent = `${COURSES[s.lang].name} · ${s.levels[s.lang]} · ${pageName}`;
+  $('#tutorCtx').textContent = `${COURSES[s.lang].name} · ${COURSES[s.lang].onlyLevel || s.levels[s.lang]} · ${pageName}`;
 }
 
 function renderMsgs() {

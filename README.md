@@ -1,10 +1,14 @@
-# Lingua: French, Spanish & Tagalog
+# Lingua: Spanish, French, Tagalog & Advanced English
 
 A grammar-focused language-learning site that runs entirely in the browser, so GitHub Pages can host it for free. There's no build step and no server.
 
 ## Features
 
 - **Three languages × three levels.** Spanish, French and Tagalog at Beginner, Intermediate and Advanced. You set your level per language and can change it any time.
+- **Advanced English.** Ten advanced grammar lessons (subjunctive, inversion, clefts, modal perfects, dangling modifiers, relative clauses, mixed conditionals, agreement traps, parallelism, precise usage), plus:
+  - **Daily literature:** verbatim public-domain excerpts from Austen, Dickens, Eliot, Melville, the Brontës, Wilde, Conrad, Wharton, James and others. 13 passages have hand-written close-reading questions; with an API key, 106 more are unlocked and Claude writes questions for each one.
+  - **Daily words:** five advanced-but-common words each day from a 100-word bank, with definition, example, memory hook and usage note, then a quiz that adds them to your flashcards. With a key, "5 more words" adds a fresh AI-chosen set each day.
+  - No listening section.
 - **Grammar lessons** (47 in total). Each has an explanation, a conjugation or pattern table, example sentences with audio, vocabulary, and exercises (multiple choice and fill-in-the-blank) that give instant feedback.
 - **Flashcards with spaced repetition** (a simplified SM-2 scheduler). Finishing a lesson adds its vocabulary to the deck automatically. A *Today's words* deck lets you drill everything you added that day.
 - **Click any word.** A popup shows:
@@ -79,7 +83,8 @@ js/ai.js            Claude API calls (tutor, word lookups, daily passages)
 js/speech.js        text-to-speech
 js/ui.js            helpers (clickable-word tokenizer, markdown, answer checking)
 js/courses.js       loads the three courses
-js/data/{es,fr,tl}.js   course content: dictionary, lessons, readings, listening
+js/data/{es,fr,tl,en}.js   course content: dictionary, lessons, readings, listening
+js/data/en-library.js   106 public-domain literature excerpts (Project Gutenberg)
 ```
 
 ## Adding content

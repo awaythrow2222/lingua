@@ -2,13 +2,13 @@ import { $, $$, esc, tl, rich, toast, checkAnswer, shuffle } from './ui.js';
 import * as store from './store.js';
 import * as speech from './speech.js';
 import * as ai from './ai.js';
-import { COURSES, LANGS, LEVELS, LEVEL_LABEL, content } from './courses.js';
+import { COURSES, LANGS, LEVELS, LEVEL_LABEL, content, has } from './courses.js';
 import { initWordPopup, closeWord } from './wordpopup.js';
 import { initTutor, setTutorPage } from './tutor.js';
 
 const S = () => store.get();
 const L = () => S().lang;
-const LV = () => S().levels[L()];
+const LV = () => C().onlyLevel || S().levels[L()];
 const C = () => COURSES[L()];
 const view = () => $('#view');
 const speakBtn = (text, lang = L(), label = 'Play') => `<button class="speak inline" data-say="${esc(text)}" data-lang="${lang}" aria-label="${label}">🔊</button>`;
@@ -19,6 +19,10 @@ function renderShell() {
   document.body.dataset.lang = L();
   $('#langSwitch').innerHTML = LANGS.map((l) => `<button role="tab" aria-selected="${l === L()}" data-setlang="${l}"><span>${COURSES[l].flag}</span><span class="ln">${COURSES[l].name}</span></button>`).join('');
   $('#levelSelect').value = LV();
+  $('#levelSelect').disabled = !!C().onlyLevel;
+  $('#levelSelect').title = C().onlyLevel ? `${C().name} is offered at the ${LEVEL_LABEL[C().onlyLevel]} level` : '';
+  for (const f of ['reading', 'listening', 'words']) $(`#sidenav a[data-route="${f}"]`).hidden = !has(L(), f);
+  $('#sidenav a[data-route="reading"]').innerHTML = `<span>📖</span> ${L() === 'en' ? 'Daily literature' : 'Daily reading'}`;
   applyTheme();
 }
 
@@ -38,6 +42,7 @@ function setActiveNav(route) {
 function dailyIndex(n, salt) { return n ? (store.dayNumber() + salt) % n : 0; }
 
 function todaysPassage(kind) {
+  if (L() === 'en' && kind === 'reading') return todaysExcerpt();
   const ck = `${kind}:${L()}:${LV()}:${store.today()}`;
   const aiP = S().aiCache[ck];
   if (aiP && !builtinOverride[kind]) return { ...aiP, id: `ai-${store.today()}`, ai: true };
@@ -46,6 +51,23 @@ function todaysPassage(kind) {
   return p ? { ...p, level } : null;
 }
 const builtinOverride = { reading: false, listening: false };
+let excerptOffset = 0; // "Another excerpt" for this visit
+
+/** English reading: verbatim literature. Hand-written questions offline; with a key, the larger library too. */
+function todaysExcerpt() {
+  const authored = C().levels.advanced.reading;
+  const pool = ai.hasKey() ? shuffle([...authored, ...C().library], 0.4242) : authored;
+  const p = pool[(store.dayNumber() + excerptOffset) % pool.length];
+  const gen = S().aiCache[`litq:${p.id}`];
+  return { ...p, level: 'advanced', literary: true, ...(gen && !p.questions ? { questions: gen.questions, vocab: gen.vocab, context: gen.context } : {}) };
+}
+
+/** Today's five words from the bank (deterministic per day). */
+function todaysWords() {
+  const bank = shuffle(C().wordBank, 0.1717);
+  const start = (store.dayNumber() * 5) % bank.length;
+  return Array.from({ length: 5 }, (_, i) => bank[(start + i) % bank.length]);
+}
 
 function nextLesson() {
   const { items, level } = content(L(), LV(), 'grammar');
@@ -91,12 +113,13 @@ function viewHome() {
 
     <div class="card">
       <div class="row"><h2 style="margin:0">Today's plan</h2><span class="spacer"></span><span class="pill gray">${pts} pts today</span></div>
-      <p class="muted small" style="margin-top:4px">Grammar first, then lock it in with cards, reading and listening.</p>
+      <p class="muted small" style="margin-top:4px">Grammar first, then lock it in with flashcards and daily practice.</p>
       <div class="grid" style="gap:10px">
         ${task(next ? `#/grammar/${next.id}` : '#/grammar', !next, next ? `Grammar: ${esc(next.title)}` : 'All lessons at this level complete 🎉', next ? esc(next.summary) : 'Review any lesson, or try the next level.')}
         ${task('#/flashcards', due === 0, `Flashcards: ${due ? `${due} due` : 'all caught up'}`, todayWords.length ? `${todayWords.length} new word${todayWords.length > 1 ? 's' : ''} added today` : 'New words from lessons are added automatically')}
-        ${task('#/reading', !!readDone, 'Daily reading', readDone ? `Score ${readDone.score}/${readDone.total}` : esc(todaysPassage('reading')?.title || ''))}
-        ${task('#/listening', !!listenDone, 'Daily listening', listenDone ? `Score ${listenDone.score}/${listenDone.total}` : esc(todaysPassage('listening')?.title || ''))}
+        ${task('#/reading', !!readDone, lang === 'en' ? 'Daily literature' : 'Daily reading', readDone ? `Score ${readDone.score}/${readDone.total}` : esc(todaysPassage('reading')?.title || '') + (lang === 'en' ? ` — ${esc(todaysPassage('reading')?.author || '')}` : ''))}
+        ${has(lang, 'words') ? task('#/words', !!store.dailyResult('words', lang), 'Daily words', store.dailyResult('words', lang) ? `Quiz ${store.dailyResult('words', lang).score}/${store.dailyResult('words', lang).total}` : todaysWords().join(' · ')) : ''}
+        ${has(lang, 'listening') ? task('#/listening', !!listenDone, 'Daily listening', listenDone ? `Score ${listenDone.score}/${listenDone.total}` : esc(todaysPassage('listening')?.title || '')) : ''}
       </div>
     </div>
 
@@ -120,11 +143,12 @@ function onboardingCard() {
   return `<div class="card" style="border-color:var(--accent)">
     <h2>Welcome to Lingua 👋</h2>
     <p>Pick your level for each language — you can change it any time from the sidebar.</p>
-    <div class="grid cols-3">${LANGS.map((l) => `
+    <div class="grid cols-3">${LANGS.filter((l) => !COURSES[l].onlyLevel).map((l) => `
       <label class="card flat" style="margin:0">
         <div style="font-size:1.6rem">${COURSES[l].flag}</div><b>${COURSES[l].name}</b>
         <select data-onb="${l}" style="width:100%;margin-top:8px">${LEVELS.map((lv) => `<option value="${lv}" ${S().levels[l] === lv ? 'selected' : ''}>${LEVEL_LABEL[lv]}</option>`).join('')}</select>
       </label>`).join('')}</div>
+    <p class="small muted" style="margin-top:12px">Also included: ${COURSES.en.flag} <b>Advanced English</b> — advanced grammar, literature excerpts and daily vocabulary.</p>
     <div class="row" style="margin-top:14px">
       <label class="small">Start with:
         <select id="onbLang">${LANGS.map((l) => `<option value="${l}" ${l === L() ? 'selected' : ''}>${COURSES[l].name}</option>`).join('')}</select>
@@ -433,7 +457,7 @@ function passageHeader(kind, p) {
       ${p.ai ? '<span class="pill gray">✨ AI-generated</span>' : ''}
       ${res ? `<span class="pill good">Done today · ${res.score}/${res.total}</span>` : ''}
       <span class="spacer"></span>
-      ${ai.hasKey() ? (p.ai ? `<button class="btn sm" id="useBuiltin">Use built-in passage</button>` : `<button class="btn sm" id="genAI">✨ Fresh AI passage</button>`) : ''}
+      ${p.literary ? '<button class="btn sm" id="nextExcerpt">📚 Another excerpt</button>' : ai.hasKey() ? (p.ai ? `<button class="btn sm" id="useBuiltin">Use built-in passage</button>` : `<button class="btn sm" id="genAI">✨ Fresh AI passage</button>`) : ''}
     </div>`;
 }
 
@@ -463,25 +487,34 @@ function bindVocab(p, lang) {
 }
 
 function viewReading() {
-  setTutorPage('Daily reading');
   const lang = L();
   const p = todaysPassage('reading');
   if (!p) { view().innerHTML = '<p>No reading available.</p>'; return; }
+  const lit = !!p.literary;
+  setTutorPage(lit ? `Daily literature: ${p.title} by ${p.author}` : 'Daily reading');
+  const needsQs = !p.questions?.length;
   view().innerHTML = `
-    <h1>Daily reading</h1>
+    <h1>${lit ? 'Daily literature' : 'Daily reading'}</h1>
     ${passageHeader('reading', p)}
     <div class="card">
-      <div class="row"><h2 style="margin:0" lang="${lang}">${esc(p.title)}</h2><span class="spacer"></span>
-        <button class="btn sm" id="readAloud">▶ Read aloud</button><button class="btn sm" id="toggleTr">Show translation</button></div>
-      <p class="muted small" style="margin:6px 0 14px">Click any word for its meaning. Try answering before you peek at the translation.</p>
-      <div class="passage" lang="${lang}">${p.sentences.map((s, i) => `<span class="passage-sentence" data-sentence="${esc(s)}" data-i="${i}">${linkSentence(s, lang)}</span> `).join('')}</div>
-      <div id="tr" class="notice" style="margin-top:16px" hidden>${esc(p.translation)}</div>
+      <div class="row"><div><h2 style="margin:0" lang="${lang}">${lit ? `<i>${esc(p.title)}</i>` : esc(p.title)}</h2>
+        ${lit ? `<div class="muted small">${esc(p.author)}, ${p.year}</div>` : ''}</div><span class="spacer"></span>
+        <button class="btn sm" id="readAloud">▶ Read aloud</button>${p.translation ? '<button class="btn sm" id="toggleTr">Show translation</button>' : ''}</div>
+      ${p.context ? `<p class="notice small" style="margin-top:12px">${esc(p.context)}</p>` : ''}
+      <p class="muted small" style="margin:6px 0 14px">${lit ? 'Click any word for its definition, forms and a memory trick. Read slowly — then test yourself below.' : 'Click any word for its meaning. Try answering before you peek at the translation.'}</p>
+      ${lit
+        ? `<div class="passage literary" lang="en">${p.sentences.map((s, i) => `<p class="passage-sentence" data-sentence="${esc(s.slice(0, 300))}" data-i="${i}">${tl(s, lang)}</p>`).join('')}</div>`
+        : `<div class="passage" lang="${lang}">${p.sentences.map((s, i) => `<span class="passage-sentence" data-sentence="${esc(s)}" data-i="${i}">${linkSentence(s, lang)}</span> `).join('')}</div>`}
+      ${p.translation ? `<div id="tr" class="notice" style="margin-top:16px" hidden>${esc(p.translation)}</div>` : ''}
+      ${lit ? '<p class="muted small" style="margin:8px 0 0">Public-domain text from Project Gutenberg.</p>' : ''}
     </div>
-    <div class="card"><h2>Comprehension</h2><div id="qList">${questionsToExercises(p.questions).map((ex, i) => exerciseHTML(ex, i, lang)).join('')}</div><div id="qResult"></div></div>
-    ${vocabBlock(p, lang)}`;
+    <div class="card"><h2>${lit ? 'Close reading' : 'Comprehension'}</h2>
+      <div id="qList">${needsQs ? '<p class="muted"><span class="spinner"></span> Writing questions for this excerpt…</p>' : questionsToExercises(p.questions).map((ex, i) => exerciseHTML(ex, i, lang)).join('')}</div><div id="qResult"></div></div>
+    ${needsQs ? '' : vocabBlock(p, lang)}`;
   bindPassageSwitch('reading', viewReading);
+  $('#nextExcerpt')?.addEventListener('click', () => { excerptOffset++; viewReading(); });
   bindVocab(p, lang);
-  $('#toggleTr').onclick = (e) => { const t = $('#tr'); t.hidden = !t.hidden; e.target.textContent = t.hidden ? 'Show translation' : 'Hide translation'; };
+  $('#toggleTr')?.addEventListener('click', (e) => { const t = $('#tr'); t.hidden = !t.hidden; e.target.textContent = t.hidden ? 'Show translation' : 'Hide translation'; });
   $('#readAloud').onclick = (e) => {
     if (e.target.dataset.playing) { speech.stopSequence(); return; }
     e.target.dataset.playing = '1'; e.target.textContent = '■ Stop';
@@ -492,9 +525,73 @@ function viewReading() {
       },
     });
   };
+  if (needsQs) {
+    const shownId = p.id;
+    ai.literatureQuestions(p)
+      .then(() => { if (location.hash === '#/reading' && todaysPassage('reading').id === shownId) viewReading(); })
+      .catch((err) => { $('#qList').innerHTML = `<p class="feedback bad">${esc(ai.friendlyError(err))}</p>`; });
+    return;
+  }
   bindExercises($('#qList'), questionsToExercises(p.questions), (c, t) => {
     store.recordDaily('readings', lang, p.id, c, t);
-    $('#qResult').innerHTML = `<div class="feedback ${c / t >= 0.7 ? 'good' : 'bad'}" style="font-size:1rem"><b>${c}/${t}</b> — saved to your progress. ${$('#tr').hidden ? 'Open the translation to check any doubts.' : ''}</div>`;
+    const tip = p.translation ? ($('#tr').hidden ? 'Open the translation to check any doubts.' : '') : 'Ask the tutor about any line you want to unpack.';
+    $('#qResult').innerHTML = `<div class="feedback ${c / t >= 0.7 ? 'good' : 'bad'}" style="font-size:1rem"><b>${c}/${t}</b> — saved to your progress. ${tip}</div>`;
+  });
+}
+
+function viewWords() {
+  setTutorPage('Daily words');
+  const lang = L();
+  const dict = C().dictionary;
+  const words = todaysWords().map((w) => ({ word: w, pos: dict[w].pos, definition: dict[w].def, example: dict[w].examples[0][0], mnemonic: dict[w].mnemonic, note: dict[w].notes }));
+  const extra = S().aiCache[`words:en:${store.today()}`] || [];
+  const res = store.dailyResult('words', lang);
+  const card = (w) => `<div class="card word-card">
+      <div class="row"><span class="wc-word">${esc(w.word)}</span>${speakBtn(w.word, lang, `Pronounce ${w.word}`)}<span class="pill gray">${esc(w.pos)}</span><span class="spacer"></span>
+        <button class="btn sm" data-addword="${esc(w.word)}" ${store.hasCard(lang, w.word) ? 'disabled' : ''}>${store.hasCard(lang, w.word) ? '✓ In flashcards' : '＋ Flashcard'}</button></div>
+      <p style="margin:8px 0 6px;font-size:1.05rem">${esc(w.definition)}</p>
+      <ul class="examples"><li data-sentence="${esc(w.example)}">${tl(w.example, lang)} ${speakBtn(w.example, lang)}</li></ul>
+      <div class="mnemonic" style="margin-top:10px">💡 ${esc(w.mnemonic)}</div>
+      ${w.note ? `<p class="muted small" style="margin:8px 0 0">${esc(w.note)}</p>` : ''}
+    </div>`;
+  const quizWords = [...words, ...extra];
+  const quiz = quizWords.map((w, i) => {
+    const others = shuffle(quizWords.filter((x) => x !== w), (store.dayNumber() % 97 + i + 1) / 101).slice(0, 3);
+    const opts = shuffle([w, ...others], (store.dayNumber() % 89 + i + 7) / 97);
+    return { type: 'mc', q: `Which word means: “${w.definition}”?`, options: opts.map((o) => o.word), answer: opts.indexOf(w), explain: w.example };
+  });
+  view().innerHTML = `<div id="wordsPage">
+    <h1>Daily words</h1>
+    <div class="row" style="margin-bottom:14px">
+      <span class="pill">${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+      ${res ? `<span class="pill good">Quiz done · ${res.score}/${res.total}</span>` : ''}
+      <span class="spacer"></span>
+      <button class="btn sm" id="addAllWords">＋ Add all to flashcards</button>
+    </div>
+    <p class="muted">Five advanced words that educated writers actually use. Learn them, then take the quiz — they'll go into your flashcards for spaced review.</p>
+    ${words.map(card).join('')}
+    ${extra.length ? `<h2 style="margin-top:24px">✨ Bonus words</h2>${extra.map(card).join('')}` : ''}
+    ${ai.hasKey() && !extra.length ? '<div class="row" style="margin-bottom:18px"><button class="btn" id="moreWords">✨ 5 more words (AI)</button></div>' : ''}
+    <div class="card"><h2>Quiz</h2><div id="wQuiz">${quiz.map((ex, i) => exerciseHTML(ex, i, lang)).join('')}</div><div id="wResult"></div></div></div>`;
+
+  const addWord = (w) => store.addCard(lang, w.word, w.definition, w.example, 'words');
+  $('#wordsPage').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-addword]');
+    if (!b) return;
+    const w = quizWords.find((x) => x.word === b.dataset.addword);
+    addWord(w); b.disabled = true; b.textContent = '✓ In flashcards';
+  });
+  $('#addAllWords').onclick = () => { quizWords.forEach(addWord); toast('Today\'s words added to flashcards'); viewWords(); };
+  $('#moreWords')?.addEventListener('click', async (e) => {
+    e.target.disabled = true; e.target.innerHTML = '<span class="spinner"></span> Choosing words…';
+    const avoid = [...C().wordBank, ...S().cards.filter((c) => c.lang === 'en').map((c) => c.front)];
+    try { await ai.moreWords(avoid); viewWords(); }
+    catch (err) { toast(ai.friendlyError(err)); e.target.disabled = false; e.target.textContent = '✨ 5 more words (AI)'; }
+  });
+  bindExercises($('#wQuiz'), quiz, (c, t) => {
+    store.recordDaily('words', lang, store.today(), c, t);
+    quizWords.forEach(addWord);
+    $('#wResult').innerHTML = `<div class="feedback ${c / t >= 0.7 ? 'good' : 'bad'}" style="font-size:1rem"><b>${c}/${t}</b> — saved. All of today's words are now in your flashcards.</div>`;
   });
 }
 const linkSentence = (s, lang) => tl(s, lang);
@@ -637,9 +734,9 @@ function viewProgress() {
       const mature = cards.filter((x) => x.interval >= 21).length;
       const learning = cards.filter((x) => x.reps > 0 && x.interval < 21).length;
       return `<div class="card">
-        <div class="row"><span style="font-size:1.6rem">${c.flag}</span><h2 style="margin:0">${c.name}</h2><span class="pill">${LEVEL_LABEL[s.levels[lang]]}</span></div>
+        <div class="row"><span style="font-size:1.6rem">${c.flag}</span><h2 style="margin:0">${c.name}</h2><span class="pill">${LEVEL_LABEL[c.onlyLevel || s.levels[lang]]}</span></div>
         <div class="grid cols-2" style="margin-top:14px">
-          <div>${LEVELS.map((lv) => {
+          <div>${LEVELS.filter((lv) => c.levels[lv]?.grammar?.length).map((lv) => {
             const items = c.levels[lv]?.grammar || [];
             const n = items.filter((l) => s.lessonsDone[store.lessonKey(lang, lv, l.id)]).length;
             return `<div style="margin-bottom:10px"><div class="row small"><span>${LEVEL_LABEL[lv]} grammar</span><span class="spacer"></span><span class="muted">${n}/${items.length}</span></div>
@@ -647,7 +744,8 @@ function viewProgress() {
           }).join('')}</div>
           <div class="small">
             <div class="row"><span>Reading average</span><span class="spacer"></span><b>${avg(s.readings, lang)}</b></div>
-            <div class="row"><span>Listening average</span><span class="spacer"></span><b>${avg(s.listening, lang)}</b></div>
+            ${has(lang, 'listening') ? `<div class="row"><span>Listening average</span><span class="spacer"></span><b>${avg(s.listening, lang)}</b></div>` : ''}
+            ${has(lang, 'words') ? `<div class="row"><span>Daily-word quizzes</span><span class="spacer"></span><b>${avg(s.words, lang)}</b></div>` : ''}
             <div class="row"><span>Cards: new / learning / mature</span><span class="spacer"></span><b>${cards.length - mature - learning} / ${learning} / ${mature}</b></div>
             <div class="row"><span>Due now</span><span class="spacer"></span><b>${store.dueCards(lang).length}</b></div>
           </div>
@@ -673,7 +771,7 @@ function viewSettings() {
 
     <div class="card">
       <h2>Your levels</h2>
-      <div class="grid cols-3">${LANGS.map((l) => `<label>${COURSES[l].flag} ${COURSES[l].name}<br>
+      <div class="grid cols-3">${LANGS.filter((l) => !COURSES[l].onlyLevel).map((l) => `<label>${COURSES[l].flag} ${COURSES[l].name}<br>
         <select data-lvl="${l}" style="width:100%">${LEVELS.map((lv) => `<option value="${lv}" ${S().levels[l] === lv ? 'selected' : ''}>${LEVEL_LABEL[lv]}</option>`).join('')}</select></label>`).join('')}</div>
     </div>
 
@@ -684,7 +782,7 @@ function viewSettings() {
         const vs = speech.voicesFor(l);
         return `<label>${COURSES[l].name} voice<br><select data-voice="${l}" style="width:100%">
           ${vs.length ? vs.map((v) => `<option ${s.voices[l] === v.name ? 'selected' : ''}>${esc(v.name)}</option>`).join('') : `<option value="">${l === 'tl' ? 'None installed — Spanish fallback' : 'None installed'}</option>`}
-        </select>${vs.length ? `<button class="btn sm" style="margin-top:6px" data-say="${esc({ es: 'Hola, ¿qué tal?', fr: 'Bonjour, ça va ?', tl: 'Kumusta ka?' }[l])}" data-lang="${l}">🔊 Test</button>` : ''}</label>`;
+        </select>${vs.length ? `<button class="btn sm" style="margin-top:6px" data-say="${esc({ es: 'Hola, ¿qué tal?', fr: 'Bonjour, ça va ?', tl: 'Kumusta ka?', en: 'It was the best of times.' }[l])}" data-lang="${l}">🔊 Test</button>` : ''}</label>`;
       }).join('')}</div>
       <label style="display:block;margin-top:12px">Default speed: <span id="rv">${s.rate}×</span><br><input type="range" id="rateS" min="0.5" max="1.2" step="0.05" value="${s.rate}" style="width:240px"></label>` : '<p>Speech synthesis is not supported in this browser.</p>'}
     </div>
@@ -743,12 +841,14 @@ function route() {
   fcKeys = null;
   const parts = location.hash.replace(/^#\/?/, '').split('/');
   const [page, arg] = parts;
+  if ((page === 'listening' || page === 'words' || page === 'reading') && !has(L(), page)) { location.hash = '#/'; return; }
   setActiveNav(page || 'home');
   switch (page) {
     case 'grammar': arg ? viewLesson(arg) : viewGrammar(); break;
     case 'flashcards': viewFlashcards(arg || 'review'); break;
     case 'reading': viewReading(); break;
     case 'listening': viewListening(); break;
+    case 'words': viewWords(); break;
     case 'progress': viewProgress(); break;
     case 'settings': viewSettings(); break;
     default: viewHome();
@@ -761,6 +861,7 @@ function setLang(lang) {
   S().lang = lang;
   store.save();
   builtinOverride.reading = builtinOverride.listening = false;
+  excerptOffset = 0;
   renderShell();
   // a lesson id belongs to one language; go back to its list
   if (location.hash.startsWith('#/grammar/')) location.hash = '#/grammar';

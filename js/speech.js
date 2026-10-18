@@ -1,7 +1,7 @@
 // Pronunciation via the browser's built-in speech synthesis (no API key needed).
 import * as store from './store.js';
 
-const LOCALES = { fr: ['fr-FR', 'fr-CA', 'fr'], es: ['es-ES', 'es-MX', 'es-US', 'es'], tl: ['fil-PH', 'tl-PH', 'fil', 'tl'] };
+const LOCALES = { fr: ['fr-FR', 'fr-CA', 'fr'], es: ['es-ES', 'es-MX', 'es-US', 'es'], tl: ['fil-PH', 'tl-PH', 'fil', 'tl'], en: ['en-US', 'en-GB', 'en'] };
 let voices = [];
 
 function loadVoices() { voices = window.speechSynthesis?.getVoices() || []; }

@@ -3,13 +3,14 @@ const KEY = 'lingua:v1';
 
 const defaults = () => ({
   lang: 'es',
-  levels: { fr: 'beginner', es: 'beginner', tl: 'beginner' },
+  levels: { fr: 'beginner', es: 'beginner', tl: 'beginner', en: 'advanced' },
   onboarded: false,
   settings: { apiKey: '', model: 'claude-opus-5-5', rate: 0.9, voices: {}, theme: 'auto' },
   lessonsDone: {},     // { "fr:beginner:fr-b-1": "2026-10-18" }
   exerciseScores: {},  // { lessonKey: {correct, total, date} }
   readings: {},        // { "fr:2026-10-18": {id, score, total} }
   listening: {},       // same shape
+  words: {},           // daily vocabulary quiz results, same shape
   activity: {},        // { "2026-10-18": { fr: 12, es: 4 } } — points per day
   cards: [],           // flashcards
   aiCache: {},         // word lookups + generated daily content
